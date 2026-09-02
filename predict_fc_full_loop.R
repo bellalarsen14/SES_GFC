@@ -64,17 +64,17 @@ GFC$id <- as.numeric(sub("sub-","",GFC$id)); names(GFC)[1] <- "snum"
 ROIs_GFC <- names(GFC)[grepl("edge", names(GFC))]
 
 ## load ICC values (1 value per edge, vector of 78210 ICC values)
-ICCs_GFC <- read.csv(paste0(root,'Larsen/Dunedin/PH45\ Functional\ Connectivity/DBIS_GFC_N769_incSubcortex_ICCs.csv'))$ICC
+ICCs_GFC <- read.csv(paste0(root,'DBIS_GFC_N769_incSubcortex_ICCs.csv'))$ICC
 
 ## load behavioral data file, a dataframe with subject number, one row per participant, and SES data
-behavdata <- read.csv(file = paste0(root,"Larsen/Dunedin/Bella_Code/person_level_df_all_ses_comp.csv")) %>%
+behavdata <- read.csv(file = paste0(root,"person_level_df_all_ses_comp.csv")) %>%
   select(-X)
 
 ## ensure that sex is a factor with levels 1,2 where 1 is the reference level
 behavdata$sex <- as.factor(behavdata$sex)
 
 ## load in motion (framewise displacement, or FD) covariate, dataframe with subject number, one row per participant, and FD value
-motion <- read.csv(paste0(root,'Larsen/Dunedin/PH45\ Functional\ Connectivity/DBIS_GFC_N769_motion.csv'))
+motion <- read.csv(paste0(root,'DBIS_GFC_N769_motion.csv'))
 motion$snum <- as.numeric(sub("sub-","",motion$id))
 
 ## join behavioral data with imaging data to pare down to subjects with both data
@@ -137,7 +137,7 @@ for (cfg_row in 1:nrow(run_configs)) {
   # Load the matching pre-generated splits for this config (produced by the
   # tuning script, so the same 100 splits are reused here).
   # -------------------------------------------------------------------------
-  load(paste0(root, "Larsen/Dunedin/Code\ from\ Ethan/Bella\ edits/Tuning/generated_splits_loop/splits_", cfg$name, ".Rdata"))  # loads object: splits_<name>
+  load(paste0(root, "Tuning/generated_splits_loop/splits_", cfg$name, ".Rdata"))  # loads object: splits_<name>
   splits_cur <- get(paste0("splits_", cfg$name))
 
   for (iter in 1:n_iter){
