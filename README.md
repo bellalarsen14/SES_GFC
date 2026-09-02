@@ -13,11 +13,11 @@ Among members of a population-representative birth-cohort followed to midlife (t
 ### File directory:
 
 #### 1. parameter_tuning_main_analyses.R
-This file runs predictive models 100 times, varying model parameters (lambda) each time. This code loops across the six SES/time-    point combinations (childhood and adulthood, individual- and neighborhood-level SES. 
+This file runs regularized regression models 100 times, varying the model regularization hyperparameter used to control the penalty strength each time (lambda). This code loops across the six SES/timepoint combinations (childhood and adulthood, individual- and neighborhood-level SES. 
 
 * *Inputs*: GFC edges per Study member (matrix), reliability (ICC) values per edge (vector), framewise displacement values per Study member (dataframe), behavioral dataframe with SES and other sociodemographic data (dataframe).
 
-* *Outputs*: For each variable, outputs are created for a) base models and b) models with covariates added. Outputs are 100 saved enet objects (model) for each variable. Additionally, within each iteration (per variable), the splits for 90/10 training/test are saved so they can be reloaded when the models are run.
+* *Outputs*: For each variable, outputs are created for a) base models and b) models with covariates added. Outputs are 100 saved enet objects (model) for each variable. Additionally, within each iteration (per variable), the splits for 90/10 training/test are saved so they can be reloaded when the models are run. From the model outputs, the optimal lambda is chosen per variable as the one most frequently selected by the cross-validation using *caret()*.
 
 
 #### 2. parameter_tuning_additional_analyses.R
