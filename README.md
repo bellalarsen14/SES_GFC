@@ -22,3 +22,10 @@ This file runs regularized regression models 100 times, varying the model regula
 
 #### 2. parameter_tuning_additional_analyses.R
 This file contains additional tuning loops for two models: one predicting adult individual-level SES covarying for childhood individual-SES, and a second predicting adult neighborhood-level SES covarying for childhood neighborhood-level SES. Otherwise identical to the parameter_tuning_main_analyses file.
+
+#### 3. predict_fc_full_loop
+This file contains code for the regularized regression training and testing, using the hyperparameter (lambda) selected during the tuning steps above. This code loops across the six SES/timepoint combinations (childhood and adulthood, individual- and neighborhood-level SES. 
+
+* *Inputs*: GFC edges per Study member (matrix), reliability (ICC) values per edge (vector), framewise displacement values per Study member (dataframe), behavioral dataframe with SES and other sociodemographic data (dataframe), 90/10 train/test splits generated during tuning, and lambda values selected during tuning.
+
+* *Outputs*: For each variable, outputs are created for a) base models and b) models with covariates added. Outputs are: 1) a dataframe of model performance metrics extracted from the model output from *caret* function *predict()* in the test data. Performance metrics include the RMSE, R-squared value, MAE, and *r* (the correlation between observed SES values and SES values predicted from the model. 2) Haufe-transformed feature importance scores.
