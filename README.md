@@ -10,3 +10,11 @@ Emerging evidence suggests that socioeconomic differences are associated with th
 
 Among members of a population-representative birth-cohort followed to midlife (the New Zealand-based Dunedin Study), we tested the association of both familial/individual and neighborhood socioeconomic status (SES) in childhood (birth–15y) and adulthood (26y–45y) with fMRI-assessed intrinsic whole-brain connectivity at age 45y (*N*=769; 49% female). 
 
+### File directory:
+
+#### 1. parameter_tuning_main_analyses.R
+This file runs predictive models 100 times, varying model parameters (lambda) each time. This code loops across the six SES/time-    point combinations (childhood and adulthood, individual- and neighborhood-level SES. 
+Inputs: GFC edges per Study member (matrix), reliability (ICC) values per edge (vector), framewise displacement values per Study member (dataframe), behavioral dataframe with SES and other sociodemographic data (dataframe).
+Outputs: For each variable, outputs are created for a) base models and b) models with covariates added. Outputs are 100 saved enet objects (model).
+
+2. 
