@@ -20,4 +20,5 @@ This file runs predictive models 100 times, varying model parameters (lambda) ea
 * *Outputs*: For each variable, outputs are created for a) base models and b) models with covariates added. Outputs are 100 saved enet objects (model) for each variable. Additionally, within each iteration (per variable), the splits for 90/10 training/test are saved so they can be reloaded when the models are run.
 
 
-2. 
+#### 2. parameter_tuning_additional_analyses.R
+This file contains additional tuning loops for two models: one predicting adult individual-level SES covarying for childhood individual-SES, and a second predicting adult neighborhood-level SES covarying for childhood neighborhood-level SES. Otherwise identical to the parameter_tuning_main_analyses file.
