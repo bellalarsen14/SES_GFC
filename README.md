@@ -54,3 +54,10 @@ This file contains code to examine the results of the permutation for each varia
 * *Inputs*: Vectors of the null prediction accuracies generated in the permutation code files, and observed prediction accuracy values generated from code file "inspecting_performance.R".
   
 * *Outputs*: csv file containing the full set of results: prediction accuracy values, and their associated p-values and percentiles against the null distribution.
+
+#### 9. manuscript_visualizations.R
+This file contains code to generate summary statistics and visualizations for the manuscript.
+
+* *Inputs*: csv file "performance_combined_update" generated from code file, "inspecting_performance.R" containing model performance statistics.
+
+* *Outputs*: csv file with between-group (neighborhood- vs. individual-level SES) differences in prediction accuracy, csv file with between-time-point (childhood vs. adulthood) differences in prediction accuracy, csv file with t-test results including age 45, csv file with results comparing models with and without covariates, figures. 
