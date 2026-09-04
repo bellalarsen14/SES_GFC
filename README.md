@@ -36,6 +36,8 @@ This file contains code for the regularized regression training and testing for 
 #### 5. inspecting_performance.R
 This file contains two loops, one for the main analyses, and one for the additional analyses predicting adult SES covarying for childhood SES. The loops load model output from each folder and extract model performance statistics.
 
+* *Outputs*: Generates model performance statistics, including Rdata files and a csv file called "performance_combined_update" to be used for downstream visualizations and analyses.
+
 #### 6. permutation_main_analyses.R
 This file contains code for conducting the permutation analysis for statistical significance. This code repeats the predictive modeling approach, this time shuffling the behavioral data across 1,000 iterations to generate a null distribution.
 
