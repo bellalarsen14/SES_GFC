@@ -42,3 +42,7 @@ This file contains code for conducting the permutation analysis for statistical 
 * *Inputs*: GFC edges per Study member (matrix), reliability (ICC) values per edge (vector), framewise displacement values per Study member (dataframe), behavioral dataframe with SES and other sociodemographic data (dataframe), 90/10 train/test splits generated during tuning, and lambda values selected during tuning.
 
 * *Outputs*: For each variable, outputs are created for a) base models and b) models with covariates added. Outputs are a vector of 1,000 null prediction accuracy values generated at each iteration of the permutation. Each variable's output thus contains two null vectors saved as Rdata files.
+
+#### 7. permutation_additional_analyses.R
+This file contains code for conducting the permutation analysis for statistical significance of the models predicting adult SES covarying for childhood SES. This code repeats the predictive modeling approach, this time shuffling the behavioral data across 1,000 iterations to generate a null distribution. Otherwise identical to permutation_main_analyses.R.
+
