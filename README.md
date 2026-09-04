@@ -33,3 +33,5 @@ This file contains code for the regularized regression training and testing, usi
 #### 4. predict_fc_additional_analyses.R
 This file contains code for the regularized regression training and testing for adult SES models covarying for childhood SES within the same level (individual- or neighborhood-). Otherwise identical to predict_fc_full_loop.R.
 
+#### 5. inspecting_performance.R
+This file contains two loops, one for the main analyses, and one for the additional analyses predicting adult SES covarying for childhood SES. The loops load model output from each folder and extract model performance statistics.
