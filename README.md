@@ -46,3 +46,9 @@ This file contains code for conducting the permutation analysis for statistical 
 #### 7. permutation_additional_analyses.R
 This file contains code for conducting the permutation analysis for statistical significance of the models predicting adult SES covarying for childhood SES. This code repeats the predictive modeling approach, this time shuffling the behavioral data across 1,000 iterations to generate a null distribution. Otherwise identical to permutation_main_analyses.R.
 
+#### 8. examining_permutation.R
+This file contains code to examine the results of the permutation for each variable and compare observed prediction accuracy values to the null distribution of prediction accuracy values.
+
+* *Inputs*: Vectors of the null prediction accuracies generated in the permutation code files, and observed prediction accuracy values generated from code file "inspecting_performance.R".
+  
+* *Outputs*: csv file containing the full set of results: prediction accuracy values, and their associated p-values and percentiles against the null distribution.
