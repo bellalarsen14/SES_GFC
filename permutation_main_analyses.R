@@ -57,10 +57,10 @@ GFC$id <- as.numeric(sub("sub-","",GFC$id)); names(GFC)[1] <- "snum"
 ROIs_GFC <- names(GFC)[grepl("edge", names(GFC))]
 
 ## load ICC values (1 value per edge, vector of 78210 ICC values)
-ICCs_GFC <- read.csv(paste0(root,'Larsen/Dunedin/PH45\ Functional\ Connectivity/DBIS_GFC_N769_incSubcortex_ICCs.csv'))$ICC
+ICCs_GFC <- read.csv(paste0(root,'DBIS_GFC_N769_incSubcortex_ICCs.csv'))$ICC
 
 ## load behavioral data file, a dataframe with subject number, one row per participant, and SES data
-behavdata <- read.csv(file = paste0(root,"Larsen/Dunedin/Bella_Code/person_level_df_all_ses_comp.csv")) %>%
+behavdata <- read.csv(file = paste0(root,"person_level_df_all_ses_comp.csv")) %>%
   select(-X)
 
 ## ensure that sex is a factor with levels 1,2 where 1 is the reference level
