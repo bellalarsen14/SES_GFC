@@ -104,8 +104,8 @@ for (cfg_row in 1:nrow(run_configs)) {
   behavvar <- behavvar_list[cfg$behavvar_idx, ]
   covariate_1 <- behavvar_list[cfg$covariate_idx, ]
 
-  workdir <- paste0(root, "Larsen/Dunedin/Bella_Prediction_Outputs/Null_loop/", cfg$name, "/") # need to create empty storage folders before running
-  dir.create(workdir, recursive = TRUE, showWarnings = FALSE)
+  workdir <- paste0(root, "Larsen/Dunedin/Bella_Prediction_Outputs/Null_loop/", cfg$name, "/") # this code automatically creates the working folder
+  dir.create(workdir, recursive = TRUE, showWarnings = FALSE) # create working directory folder
   
   lambda_set <- lambda_selection[cfg$lambda_row, 2] # from pre-run tuning
   lambda_set_covar <- lambda_selection[cfg$lambda_covar_row, 2]
