@@ -238,6 +238,12 @@ vars <- c("ADI311_flip", "neighdep2645_factor_flip", "PH45_AreaDeptot_flip",
 sapply(behavdata_merged_fc_scaled[vars], function(x) c(mean = mean(x, na.rm = TRUE),
                                                        sd = sd(x, na.rm = TRUE)))
 
+# correlate childhood and adulthood individual SES
+cor.test(behavdata_merged_fc_scaled$SESchildhd_z, behavdata_merged_fc_scaled$ses_composite_z, method = "pearson")
+
+# correlate childhood and adulthood neighborhood SES
+cor.test(behavdata_merged_fc_scaled$ADI311_z, behavdata_merged_fc_scaled$neighdep2645_factor_z, method = "pearson")
+
 # create a long version of behavioral data for visualization
 long_behavdata_merged <- pivot_longer(
   data = behavdata_merged_fc_scaled,
