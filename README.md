@@ -60,4 +60,4 @@ This file contains code to generate summary statistics and visualizations for th
 
 * *Inputs*: csv file "performance_combined_update" generated from code file, "inspecting_performance.R" containing model performance statistics; behavioral dataframe with SES and other sociodemographic data (dataframe); GFC edges per Study member (matrix); framewise displacement values per Study member (dataframe).
 
-* *Outputs*: csv file with between-group (neighborhood- vs. individual-level SES) differences in prediction accuracy, csv file with between-time-point (childhood vs. adulthood) differences in prediction accuracy, csv file with t-test results including age 45, csv file with results comparing models with and without covariates, figures. Note: figures and statistics involving feature importance are in a separate R file.
+* *Outputs*: tables and figures for manuscript. Note: figures and statistics involving feature importance are in a separate R file.
