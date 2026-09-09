@@ -64,46 +64,9 @@ performance_combined <- performance_combined %>%
                                          time_assessed == "Adulthood" ~ "Adulthood (26-45)",
                                          time_assessed == "Age 45" ~ "Age 45 (concurrent with scan)"))
 
-# between-group statistical significance 
-
-results_list <- list()
-
-counter <- 1
-
-for (t in unique(performance_combined$time_assessed)) {
-  for (c in unique(performance_combined$covariates_yn)) {
-    
-    subset_data <- subset(performance_combined, 
-                          time_assessed == t & covariates_yn == c)
-    
-    test <- t.test(r ~ ses_var_rename, data = subset_data)
-    
-    results_list[[counter]] <- data.frame(
-      time_assessed = t,
-      covariates_yn  = c,
-      t_value    = as.numeric(test$statistic),
-      df         = as.numeric(test$parameter),
-      p_value    = test$p.value,
-      conf_low   = test$conf.int[1],
-      conf_high  = test$conf.int[2]
-    )
-    
-    counter <- counter + 1
-  }
-}
-
-results_df <- do.call(rbind, results_list)
-
-results_df
-
-results_df <- results_df %>%
-  group_by(covariates_yn) %>%
-  mutate(p_adjusted = p.adjust(p_value, method = "fdr")) %>%
-  ungroup()
-
-write.csv(results_df, file = "between_group_results_df.csv", row.names = TRUE)
 #-------------------------------------------------------------------------------
-# between-age statistical significance (create loop through all combos)
+
+# Table S3
 individ_ses_t <- t.test(r ~ time_assessed, data = performance_combined %>% filter(covariates_yn == "N" & time_assessed != "Age 45" & ses_var_rename == "Individual SES"))
 
 neigh_ses_t <- t.test(r ~ time_assessed, data = performance_combined %>% filter(covariates_yn == "N" & time_assessed != "Age 45" & ses_var_rename == "Neighborhood SES"))
@@ -142,13 +105,52 @@ results_list_t_separated_full <- data.frame(
                  individ_45_adult_ses_t$conf.int[2],neigh_45_adult_ses_t$conf.int[2])
 )
 
-full_t_test_results <- results_list_t_separated_full %>%
+table_S3 <- results_list_t_separated_full %>%
   mutate(p_adjusted = p.adjust(p_value, method = "fdr")) 
 
-write.csv(full_t_test_results, file = "full_t_test_results.csv", row.names = TRUE)
+#-------------------------------------------------------------------------------
+# Table S4
+
+results_list <- list()
+
+counter <- 1
+
+for (t in unique(performance_combined$time_assessed)) {
+  for (c in unique(performance_combined$covariates_yn)) {
+    
+    subset_data <- subset(performance_combined, 
+                          time_assessed == t & covariates_yn == c)
+    
+    test <- t.test(r ~ ses_var_rename, data = subset_data)
+    
+    results_list[[counter]] <- data.frame(
+      time_assessed = t,
+      covariates_yn  = c,
+      t_value    = as.numeric(test$statistic),
+      df         = as.numeric(test$parameter),
+      p_value    = test$p.value,
+      conf_low   = test$conf.int[1],
+      conf_high  = test$conf.int[2]
+    )
+    
+    counter <- counter + 1
+  }
+}
+
+results_df <- do.call(rbind, results_list)
+
+results_df
+
+results_df <- results_df %>%
+  group_by(covariates_yn) %>%
+  mutate(p_adjusted = p.adjust(p_value, method = "fdr")) %>%
+  ungroup()
+
+table_S4 <- results_df |> 
+  filter(covariates_yn == "N")
 
 #-------------------------------------------------------------------------------
-# between-group statistical significance between covariates/no covariates (create loop through all combos)
+# Table S6
 
 results_list_plot_2 <- list()
 
@@ -178,11 +180,10 @@ for (t in unique(performance_combined$time_assessed)) {
 
 results_df_plot_2 <- do.call(rbind, results_list_plot_2)
 
-results_df_covariates <- results_df_plot_2 %>%
+table_S6 <- results_df_plot_2 %>%
   group_by(ses_var_rename) %>%
   mutate(p_adjusted = p.adjust(p_value, method = "fdr")) %>%
   ungroup()
-write.csv(results_df_covariates, file = "results_df_covariates.csv", row.names = TRUE)
 
 #-------------------------------------------------------------------------------
 # Ensure that categorical variables are factors, define levels for plotting
@@ -227,7 +228,7 @@ behavdata_merged_fc_scaled <- behavdata_merged_fc %>%
          neighdep2645_factor_z = as.numeric(scale(neighdep2645_factor_flip)),
          ses_composite_z = as.numeric(scale(ses_composite)))
 
-# Sample characteristics
+# Table S1 - Sample characteristics
 behavdata_merged_fc_scaled %>% 
   count(sex) %>% 
   mutate(perc = n/sum(n))
@@ -237,6 +238,9 @@ vars <- c("ADI311_flip", "neighdep2645_factor_flip", "PH45_AreaDeptot_flip",
 
 sapply(behavdata_merged_fc_scaled[vars], function(x) c(mean = mean(x, na.rm = TRUE),
                                                        sd = sd(x, na.rm = TRUE)))
+
+#-------------------------------------------------------------------------------
+# Summary statistics
 
 # correlate childhood and adulthood individual SES
 cor.test(behavdata_merged_fc_scaled$SESchildhd_z, behavdata_merged_fc_scaled$ses_composite_z, method = "pearson")
@@ -488,3 +492,4 @@ ggsave("figure_S5.pdf", plot = figure_S5, dpi = 300, width = 10, height = 7, uni
 
 #-------------------------------------------------------------------------------
 # note: Figures S6 and S7 are in an additional R file, along with feature importance analyses
+
