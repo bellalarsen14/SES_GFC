@@ -61,3 +61,11 @@ This file contains code to generate summary statistics and visualizations for th
 * *Inputs*: csv file "performance_combined_update" generated from code file, "inspecting_performance.R" containing model performance statistics; behavioral dataframe with SES and other sociodemographic data (dataframe); GFC edges per Study member (matrix); framewise displacement values per Study member (dataframe).
 
 * *Outputs*: tables and figures for manuscript. Note: figures and statistics involving feature importance are in a separate R file.
+
+#### 10. feature_importance.R
+This file contains code to calculate the feature importance scores and related visualizations.
+
+* *Inputs*: behavioral dataframe with SES and other sociodemographic data (dataframe); GFC edges per Study member (matrix); framewise displacement values per Study member (dataframe); Glasser parcellation reference file (one column is the Glasser parcel name, one is the cole anticevic, or CAB, parcellation, one is the CAB network name); files from the prediction and performance outputs for each variable.
+
+* *Outputs*: dataframe of feature importance scores (mean Haufe-transformed coefficient across all 100 model iterations) for each variable; figures; statistics.
+
