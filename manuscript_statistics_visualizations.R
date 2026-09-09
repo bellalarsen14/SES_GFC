@@ -65,29 +65,46 @@ performance_combined <- performance_combined %>%
                                          time_assessed == "Age 45" ~ "Age 45 (concurrent with scan)"))
 
 #-------------------------------------------------------------------------------
+# Ensure that categorical variables are factors, define levels for plotting
+performance_combined$time_assessed <- factor(performance_combined$time_assessed, levels = c("Childhood", "Adulthood", "Age 45"))
+performance_combined$time_assessed_rename <- factor(performance_combined$time_assessed_rename, levels = c("Childhood (birth-15)", "Adulthood (26-45)", "Age 45 (concurrent with scan)"))
+performance_combined$time_assessed_split <- factor(performance_combined$time_assessed_split, levels = c("Childhood (birth-15)", "Childhood (3-11)","Adulthood (26-45)", "Age 45 (concurrent with scan)"))
+performance_combined$ses_var_rename <- factor(performance_combined$ses_var_rename, levels = c("Individual SES","Neighborhood SES"))
+#-------------------------------------------------------------------------------
 
 # Table S3
-individ_ses_t <- t.test(r ~ time_assessed, data = performance_combined %>% filter(covariates_yn == "N" & time_assessed != "Age 45" & ses_var_rename == "Individual SES"))
+individ_ses_t <- t.test(r ~ time_assessed, data = performance_combined %>% 
+                          filter(covariates_yn == "N" & time_assessed != "Age 45" & ses_var_rename == "Individual SES") %>%
+                          mutate(time_assessed = factor(time_assessed, levels = c("Adulthood", "Childhood"))))
 
-neigh_ses_t <- t.test(r ~ time_assessed, data = performance_combined %>% filter(covariates_yn == "N" & time_assessed != "Age 45" & ses_var_rename == "Neighborhood SES"))
+neigh_ses_t <- t.test(r ~ time_assessed, data = performance_combined %>% 
+                        filter(covariates_yn == "N" & time_assessed != "Age 45" & ses_var_rename == "Neighborhood SES") %>%
+                        mutate(time_assessed = factor(time_assessed, levels = c("Adulthood", "Childhood"))))
 
 individ_45_adult_ses_t <- t.test(r ~ time_assessed, data = performance_combined %>% 
-                                   filter(covariates_yn == "N" & time_assessed != "Childhood" & ses_var_rename == "Individual SES"))
-individ_45_child_ses_t <- t.test(r ~ time_assessed, data = performance_combined %>% 
-                                   filter(covariates_yn == "N" & time_assessed != "Adulthood" & ses_var_rename == "Individual SES"))
+                                   filter(covariates_yn == "N" & time_assessed != "Childhood" & ses_var_rename == "Individual SES") %>%
+                                   mutate(time_assessed = factor(time_assessed, levels = c("Age 45", "Adulthood"))))
+
 neigh_45_adult_ses_t <- t.test(r ~ time_assessed, data = performance_combined %>% 
-                                 filter(covariates_yn == "N" & time_assessed != "Childhood" & ses_var_rename == "Neighborhood SES"))
+                                 filter(covariates_yn == "N" & time_assessed != "Childhood" & ses_var_rename == "Neighborhood SES") %>%
+                                 mutate(time_assessed = factor(time_assessed, levels = c("Age 45", "Adulthood"))))
+
+individ_45_child_ses_t <- t.test(r ~ time_assessed, data = performance_combined %>% 
+                                   filter(covariates_yn == "N" & time_assessed != "Adulthood" & ses_var_rename == "Individual SES") %>%
+                                   mutate(time_assessed = factor(time_assessed, levels = c("Age 45", "Childhood"))))
+
 neigh_45_child_ses_t <- t.test(r ~ time_assessed, data = performance_combined %>% 
-                                 filter(covariates_yn == "N" & time_assessed != "Adulthood" & ses_var_rename == "Neighborhood SES"))
+                                 filter(covariates_yn == "N" & time_assessed != "Adulthood" & ses_var_rename == "Neighborhood SES") %>%
+                                 mutate(time_assessed = factor(time_assessed, levels = c("Age 45", "Childhood"))))
 
 
 results_list_t_separated_full <- data.frame(
   ses_var = c("Individual SES (childhood vs. adulthood)",
               "Neighborhood SES (childhood vs. adulthood)",
-              "Individual SES (age 45 vs. childhood)",
-              "Neighborhood SES (age 45 vs. childhood)",
-              "Individual SES (age 45 vs. adulthood)",
-              "Neighborhood SES (age 45 vs. adulthood)"),
+              "Individual SES (childhood vs. age 45)",
+              "Neighborhood SES (childhood vs. age 45)",
+              "Individual SES (adulthood vs. age 45)",
+              "Neighborhood SES (adulthood vs. age 45)"),
   t_value    = c(as.numeric(individ_ses_t$statistic),as.numeric(neigh_ses_t$statistic),
                  as.numeric(individ_45_child_ses_t$statistic),as.numeric(neigh_45_child_ses_t$statistic),
                  as.numeric(individ_45_adult_ses_t$statistic),as.numeric(neigh_45_adult_ses_t$statistic)),
@@ -150,6 +167,8 @@ table_S4 <- results_df |>
   filter(covariates_yn == "N")
 
 #-------------------------------------------------------------------------------
+# note: table S5 results are located in inspecting_performance.R and permutation files
+#-------------------------------------------------------------------------------
 # Table S6
 
 results_list_plot_2 <- list()
@@ -184,14 +203,6 @@ table_S6 <- results_df_plot_2 %>%
   group_by(ses_var_rename) %>%
   mutate(p_adjusted = p.adjust(p_value, method = "fdr")) %>%
   ungroup()
-
-#-------------------------------------------------------------------------------
-# Ensure that categorical variables are factors, define levels for plotting
-performance_combined$time_assessed <- factor(performance_combined$time_assessed, levels = c("Childhood", "Adulthood", "Age 45"))
-performance_combined$time_assessed_rename <- factor(performance_combined$time_assessed_rename, levels = c("Childhood (birth-15)", "Adulthood (26-45)", "Age 45 (concurrent with scan)"))
-performance_combined$time_assessed_split <- factor(performance_combined$time_assessed_split, levels = c("Childhood (birth-15)", "Childhood (3-11)","Adulthood (26-45)", "Age 45 (concurrent with scan)"))
-performance_combined$ses_var_rename <- factor(performance_combined$ses_var_rename, levels = c("Individual SES","Neighborhood SES"))
-
 #-------------------------------------------------------------------------------
 # FDR-adjust p-values from null distribution for multiple comparisons
 
