@@ -17,9 +17,6 @@ behavvar_list <- data.frame(behavvar = c("ADI311","SESchildhd",
                                          "PH45_AreaDeptot","SESall45",
                                          "neighdep2645_factor","ses_composite"))
 
-# load in hyperparameters selected from tuning 
-lambda_selection <- read.csv(paste0(root,'lambda_selection.csv'))
-
 # define the reliability threshold for edges at 0.75
 ICCthr <- 0.75
 
@@ -31,12 +28,11 @@ brainvarlists <- list(list("GFC"))
   # lambda_row / lambda_covar_row index into lambda_selection (row, then column 2)
   # filter_var1 / filter_var2 are the two variables used to restrict to
   #   complete cases before splitting (identical for both members of a pair)
+
 run_configs <- data.frame(
   name           = c("chldhd_neigh", "chldhd_ses", "adult_neigh", "adult_ses", "age45_neigh", "age45_ses"),
   behavvar_idx   = c(1, 2, 5, 6, 3, 4),
   covariate_idx  = c(2, 1, 6, 5, 4, 3),
-  lambda_row     = c(10, 12, 2, 4, 6, 8),
-  lambda_covar_row = c(9, 11, 1, 3, 5, 7),
   filter_var1    = c("SESchildhd", "SESchildhd", "neighdep2645_factor", "neighdep2645_factor", "PH45_AreaDeptot", "PH45_AreaDeptot"),
   filter_var2    = c("ADI311", "ADI311", "ses_composite", "ses_composite", "SESall45", "SESall45"),
   folder_name    = c("chldhd_neigh_full", "chldhd_ses_full", "adult_neigh_full", "adult_ses_full", "age45_neigh_full", "age45_ses_full"),
@@ -104,13 +100,10 @@ for (cfg_row in 1:nrow(run_configs)) {
   behavvar <- behavvar_list[cfg$behavvar_idx, ]
   covariate_1 <- behavvar_list[cfg$covariate_idx, ]
 
-  workdir <- paste0(root, "Larsen/Dunedin/Bella_Prediction_Outputs/Null_loop/", cfg$name, "/") # this code automatically creates the working folder
-  dir.create(workdir, recursive = TRUE, showWarnings = FALSE) # create working directory folder
-  
-  lambda_set <- lambda_selection[cfg$lambda_row, 2] # from pre-run tuning
-  lambda_set_covar <- lambda_selection[cfg$lambda_covar_row, 2]
+  workdir <- paste0(root, "/Null_loop_CV/", cfg$name, "/")
+  dir.create(workdir, recursive = TRUE, showWarnings = FALSE)
 
-  # pair-specific complete-case filter, this time within SES level
+  # pair-specific complete-case filter
   behav_merged <- behav_merged_full %>%
     filter(!is.na(.data[[cfg$filter_var1]]) & !is.na(.data[[cfg$filter_var2]]))
 
@@ -120,7 +113,7 @@ for (cfg_row in 1:nrow(run_configs)) {
   data_covar <- dplyr::left_join(braindat_scaled[,c("snum",ROIs_full)], behav_merged[, c("snum","sex","AverageFD",behavvar,covariate_1)], by="snum")
   data_covar <- data_covar[complete.cases(data_covar),]
   
-  # Permutation: shuffle neighborhood deprivation scores before testing prediction
+  #Permutation: shuffle neighborhood deprivation scores before testing prediction
   set.seed(12345) 
   n_perm <- 1000
 
@@ -128,9 +121,7 @@ for (cfg_row in 1:nrow(run_configs)) {
   r_null_covar <- numeric(n_perm)
   
   # -------------------------------------------------------------------------
-  # Run permutation
-  # -------------------------------------------------------------------------
-  
+
   for (iter in 1:n_perm){
   
     print(paste("iteration", iter, "of", n_perm, "-", cfg$name))
@@ -154,7 +145,7 @@ for (cfg_row in 1:nrow(run_configs)) {
 
     # regress sex and motion from training set
     lm <- lm(train.data.perm[,paste(behavvar)] ~ train.data.perm$sex + train.data.perm$AverageFD)
-    train.data.perm$behav_resids <- scale(lm$residuals) 
+    train.data.perm$behav_resids <- scale(lm$residuals) #### sure we want to scale this way?
     # adjust using same parameters in test set
     coefs <- lm$coefficients # 1=intercept, 2=sex, 3=averageFD
     test_fitted_covars <- coefs[1] + coefs[2]*(as.numeric(test.data.perm$sex)-1) +
@@ -165,12 +156,16 @@ for (cfg_row in 1:nrow(run_configs)) {
     ROIs <- ROIs_full
     train.data.perm <- train.data.perm[, c("behav_resids", ROIs)]
     test.data.perm <- test.data.perm[, c("behav_adj", ROIs)]
+    
+    # Setup a grid range of lambda values:
+    lambdas <- 10^seq(-2, 2, length = 25)
 
     ## train with ridge regression
     ridge <- train(
       as.formula(paste("behav_resids", "~ .")), data = train.data.perm, method = "glmnet",
+      #trControl = ctrl_frozen,
       trControl = trainControl("cv", number = 10),
-      tuneGrid = expand.grid(alpha = 0, lambda = lambda_set)
+      tuneGrid = expand.grid(alpha = 0, lambda = lambdas)
     )
     
     # predict in test data
@@ -185,7 +180,7 @@ for (cfg_row in 1:nrow(run_configs)) {
     
     # regress sex and motion, and covariate_1, from training set
     lm_covar <- lm(train.data.covar.perm[,paste(behavvar)] ~ train.data.covar.perm$sex + train.data.covar.perm$AverageFD + train.data.covar.perm[,paste(covariate_1)])
-    train.data.covar.perm$behav_resids <- scale(lm_covar$residuals) 
+    train.data.covar.perm$behav_resids <- scale(lm_covar$residuals) #### sure we want to scale this way?
     # adjust using same parameters in test set
     coefs_covar <- lm_covar$coefficients # 1=intercept, 2=sex, 3=averageFD, 4=covariate
     test_fitted_covars <- coefs_covar[1] + coefs_covar[2]*(as.numeric(test.data.covar.perm$sex)-1) +
@@ -200,8 +195,9 @@ for (cfg_row in 1:nrow(run_configs)) {
     ## train with ridge regression
     ridge_covar <- train(
       as.formula(paste("behav_resids", "~ .")), data = train.data.covar.perm, method = "glmnet",
+      #trControl = ctrl_frozen,
       trControl = trainControl("cv", number = 10),
-      tuneGrid = expand.grid(alpha = 0, lambda = lambda_set_covar)
+      tuneGrid = expand.grid(alpha = 0, lambda = lambdas)
     )
     
     # predict in test data
