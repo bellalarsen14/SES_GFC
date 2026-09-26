@@ -4,7 +4,7 @@ library(dplyr)
 library(gridExtra)
 library(apaTables)
 
-base_path <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV/'
+base_path <- 'Updated_Runs_CV/'
 
 variable_folders <- list.dirs(base_path, full.names = FALSE, recursive = FALSE)
 # variable_folders should now hold the 6 variable-level folder names (e.g. "chldhd_neigh_full", etc.)
@@ -47,7 +47,7 @@ for (folder in variable_folders) {
   }
 }
 
-# sanity check before binding - all should read 8805
+# check number of edges: all should read 8805
 print(sapply(coef_list, length))
 
 coef_df <- as.data.frame(coef_list)
