@@ -13,8 +13,8 @@ suppressMessages(require(optparse))
 
 ################### OPTIONS #############################
 
-root <- "/Users/uzg9dz/Library/CloudStorage/Box-Box/"
-behavvar_list <- read.csv(paste0(root,'Larsen/Dunedin/Code\ from\ Ethan/Bella\ edits/behavvar_list.csv'))
+root <- "parentfoldername"
+behavvar_list <- read.csv(paste0(root,'behavvar_list.csv'))
 
 ICCthr <- 0.75
 n_iter <- 1 # just have to run this one once
@@ -43,27 +43,26 @@ run_configs <- data.frame(
 ################### END OPTIONS #############################
 
 # ---------------------------------------------------------------------------
-# Read data that is IDENTICAL across all 6 configs -- loaded once here rather
-# than redundantly inside the loop (this matches what the original 6 repeated
-# blocks were doing, since none of them modified these objects).
+# Read data 
 # ---------------------------------------------------------------------------
 
 ## load FC edges - takes about a minute! (using the function to load individually took over an hour, so finally just saved out the results!)
 ### loads variable "FC_ALL", columns are "snum" and "edge#"
-load(paste0(root, 'Larsen/Dunedin/PH45\ Functional\ Connectivity/DBIS_GFC_N769_incSubcortex.Rdata'))
+load(paste0(root, 'DBIS_GFC_N769_incSubcortex.Rdata'))
 GFC <- FC_ALL
 GFC$id <- as.numeric(sub("sub-","",GFC$id)); names(GFC)[1] <- "snum"
 
 ## ROIs
 ROIs_GFC <- names(GFC)[grepl("edge", names(GFC))]
 
-## ICCs
-ICCs_GFC <- read.csv(paste0(root,'Larsen/Dunedin/PH45\ Functional\ Connectivity/DBIS_GFC_N769_incSubcortex_ICCs.csv'))$ICC
+## define the reliability threshold for edges at 0.75
+ICCs_GFC <- read.csv(paste0(root,'DBIS_GFC_N769_incSubcortex_ICCs.csv'))$ICC
 
-behavdata <- read.csv(file = paste0(root,"Larsen/Dunedin/Bella_Code/person_level_df_all_ses_comp.csv")) %>%
+# load behavioral data file, a dataframe with subject number, one row per participant, and SES data
+behavdata <- read.csv(file = paste0(root,"person_level_df_all_ses_comp.csv")) %>%
   select(-X)
 
-#BL: sex needs to be a factor with levels 1,2 where 1 is the reference level
+# make sex a factor
 behavdata$sex <- as.factor(behavdata$sex)
 
 # covariates
@@ -106,8 +105,8 @@ for (cfg_row in 1:nrow(run_configs)) {
   behavvar <- behavvar_list[cfg$behavvar_idx, ]
   covariate_1 <- behavvar_list[cfg$covariate_idx, ]
   
-  workdir1 <- paste0(root, "Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV/", cfg$folder_name, "/haufe_coef_nocovar")
-  workdir4 <- paste0(root, "Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV/", cfg$folder_name, "/haufe_coef_covar")
+  workdir1 <- paste0(root, "Updated_Runs_CV/", cfg$folder_name, "/haufe_coef_nocovar")
+  workdir4 <- paste0(root, "Updated_Runs_CV/", cfg$folder_name, "/haufe_coef_covar")
   
   # pair-specific complete-case filter
   behav_merged <- behav_merged_full %>%
@@ -145,7 +144,7 @@ for (cfg_row in 1:nrow(run_configs)) {
       tuneGrid = expand.grid(alpha = 0, lambda = lambdas)
     )
     
-    ## predict in FULL data
+    ## predict once per variable in FULL data
     predictions_ridge_train <- ridge %>% predict(data)
     
     ## haufe transform for coefficients per Tian and Zalesky NI 2021
