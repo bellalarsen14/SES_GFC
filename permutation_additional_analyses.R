@@ -17,9 +17,6 @@ behavvar_list <- data.frame(behavvar = c("ADI311","SESchildhd",
                                          "PH45_AreaDeptot","SESall45",
                                          "neighdep2645_factor","ses_composite"))
 
-# load in hyperparameters selected from tuning 
-lambda_selection <- read.csv(paste0(root,'lambda_selection.csv'))
-
 # define the reliability threshold for edges at 0.75
 ICCthr <- 0.75
 
@@ -36,7 +33,6 @@ run_configs <- data.frame(
   name           = c("adult_neigh", "adult_ses"),
   behavvar_idx  = c(5, 6),
   covariate_idx = c(1, 2),
-  lambda_covar_row = c(1,2),
   filter_var1   = c("neighdep2645_factor", "ses_composite"),
   filter_var2   = c("ADI311", "SESchildhd"),
   folder_name    = c("adult_neigh_covar_child", "adult_ses_covar_child"),
@@ -104,12 +100,10 @@ for (cfg_row in 1:nrow(run_configs)) {
   behavvar <- behavvar_list[cfg$behavvar_idx, ]
   covariate_1 <- behavvar_list[cfg$covariate_idx, ]
 
-  workdir <- paste0(root, "Larsen/Dunedin/Bella_Prediction_Outputs/Null_loop_covar_child/", cfg$name, "/") # this code automatically creates the working folder
-  dir.create(workdir, recursive = TRUE, showWarnings = FALSE) # create working directory folder
-  
-  lambda_set_covar <- lambda_selection[cfg$lambda_covar_row, 2] # from pre-run tuning
+  workdir <- paste0(root, "/Null_loop_CV/", cfg$name, "/")
+  dir.create(workdir, recursive = TRUE, showWarnings = FALSE)
 
-  # pair-specific complete-case filter, this time within SES level
+  # pair-specific complete-case filter
   behav_merged <- behav_merged_full %>%
     filter(!is.na(.data[[cfg$filter_var1]]) & !is.na(.data[[cfg$filter_var2]]))
 
@@ -125,8 +119,6 @@ for (cfg_row in 1:nrow(run_configs)) {
 
   r_null_covar <- numeric(n_perm)
   
-  # -------------------------------------------------------------------------
-  # Run permutation
   # -------------------------------------------------------------------------
 
   for (iter in 1:n_perm){
@@ -150,15 +142,13 @@ for (cfg_row in 1:nrow(run_configs)) {
     train.data.covar.perm <- data_covar_perm[training.samples, ] # use the same paired 90/10 train/test splits for comparability
     test.data.covar.perm  <- data_covar_perm[-training.samples, ]
 
-
-    #---------------------------------------------------------------------------
-    # add covariate and run again
-  
-    # data is loaded and shuffled above
+    
+    # Setup a grid range of lambda values:
+    lambdas <- 10^seq(-2, 2, length = 25)
     
     # regress sex and motion, and covariate_1, from training set
     lm_covar <- lm(train.data.covar.perm[,paste(behavvar)] ~ train.data.covar.perm$sex + train.data.covar.perm$AverageFD + train.data.covar.perm[,paste(covariate_1)])
-    train.data.covar.perm$behav_resids <- scale(lm_covar$residuals) 
+    train.data.covar.perm$behav_resids <- scale(lm_covar$residuals) #### sure we want to scale this way?
     # adjust using same parameters in test set
     coefs_covar <- lm_covar$coefficients # 1=intercept, 2=sex, 3=averageFD, 4=covariate
     test_fitted_covars <- coefs_covar[1] + coefs_covar[2]*(as.numeric(test.data.covar.perm$sex)-1) +
@@ -173,8 +163,9 @@ for (cfg_row in 1:nrow(run_configs)) {
     ## train with ridge regression
     ridge_covar <- train(
       as.formula(paste("behav_resids", "~ .")), data = train.data.covar.perm, method = "glmnet",
+      #trControl = ctrl_frozen,
       trControl = trainControl("cv", number = 10),
-      tuneGrid = expand.grid(alpha = 0, lambda = lambda_set_covar)
+      tuneGrid = expand.grid(alpha = 0, lambda = lambdas)
     )
     
     # predict in test data
