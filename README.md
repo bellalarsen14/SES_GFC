@@ -65,3 +65,5 @@ This file estimates the feature importance for each variable by testing the mode
 
 * *Outputs*: For each variable, outputs are created for a) base models and b) models with covariates added. Outputs are a vector of 8805 Haufe-transformed coefficients per variable. 
 
+#### 12. inspect_feature_importance.R
+This file loads in the vectors of Haufe coefficients and correlates feature importance scores across variables.
