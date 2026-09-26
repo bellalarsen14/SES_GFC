@@ -20,9 +20,6 @@ behavvar_list <- data.frame(behavvar = c("ADI311","SESchildhd",
                                          "PH45_AreaDeptot","SESall45",
                                          "neighdep2645_factor","ses_composite"))
 
-# load in hyperparameters selected from tuning 
-lambda_selection <- read.csv(paste0(root,'lambda_selection.csv'))
-
 # define the reliability threshold for edges at 0.75
 ICCthr <- 0.75
 
@@ -42,8 +39,6 @@ run_configs <- data.frame(
   name           = c("chldhd_neigh", "chldhd_ses", "adult_neigh", "adult_ses", "age45_neigh", "age45_ses"),
   behavvar_idx   = c(1, 2, 5, 6, 3, 4),
   covariate_idx  = c(2, 1, 6, 5, 4, 3),
-  lambda_row     = c(10, 12, 2, 4, 6, 8),
-  lambda_covar_row = c(9, 11, 1, 3, 5, 7),
   filter_var1    = c("SESchildhd", "SESchildhd", "neighdep2645_factor", "neighdep2645_factor", "PH45_AreaDeptot", "PH45_AreaDeptot"),
   filter_var2    = c("ADI311", "ADI311", "ses_composite", "ses_composite", "SESall45", "SESall45"),
   folder_name    = c("chldhd_neigh_full", "chldhd_ses_full", "adult_neigh_full", "adult_ses_full", "age45_neigh_full", "age45_ses_full"),
