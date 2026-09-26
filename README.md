@@ -12,23 +12,12 @@ Among members of a population-representative birth-cohort followed to midlife (t
 
 ### File directory:
 
-#### 1. parameter_tuning_main_analyses.R
-This file runs regularized regression models 100 times, varying the model regularization hyperparameter used to control the penalty strength each time (lambda). This code loops across the six SES/timepoint combinations (childhood and adulthood, individual- and neighborhood-level SES. 
-
-* *Inputs*: GFC edges per Study member (matrix), reliability (ICC) values per edge (vector), framewise displacement values per Study member (dataframe), behavioral dataframe with SES and other sociodemographic data (dataframe).
-
-* *Outputs*: For each variable, outputs are created for a) base models and b) models with covariates added. Outputs are 100 saved enet objects (model) for each variable. Additionally, within each iteration (per variable), the splits for 90/10 training/test are saved so they can be reloaded when the models are run. From the model outputs, the optimal lambda is chosen per variable as the one most frequently selected by the cross-validation using *caret()*.
-
-
-#### 2. parameter_tuning_additional_analyses.R
-This file contains additional tuning loops for two models: one predicting adult individual-level SES covarying for childhood individual-SES, and a second predicting adult neighborhood-level SES covarying for childhood neighborhood-level SES. Otherwise identical to the parameter_tuning_main_analyses file.
-
-#### 3. predict_fc_full_loop.R
+#### 1. predict_fc_full_loop.R
 This file contains code for the regularized regression training and testing, using the hyperparameter (lambda) selected during the tuning steps above. This code loops across the six SES/timepoint combinations (childhood and adulthood, individual- and neighborhood-level SES. 
 
 * *Inputs*: GFC edges per Study member (matrix), reliability (ICC) values per edge (vector), framewise displacement values per Study member (dataframe), behavioral dataframe with SES and other sociodemographic data (dataframe), 90/10 train/test splits generated during tuning, and lambda values selected during tuning.
 
-* *Outputs*: For each variable, outputs are created for a) base models and b) models with covariates added. Outputs are: 1) a dataframe of model performance metrics extracted from the model output from *caret* function *predict()* in the test data. Performance metrics include the RMSE, R-squared value, MAE, and *r* (the correlation between observed SES values and SES values predicted from the model. 2) Haufe-transformed feature importance scores.
+* *Outputs*: For each variable, outputs are created for a) base models and b) models with covariates added. Outputs are saved in a dataframe of model performance metrics extracted from the model output from *caret* function *predict()* in the test data. Performance metrics include the RMSE, R-squared value, MAE, and *r* (the correlation between observed SES values and SES values predicted from the model.
 
 #### 4. predict_fc_additional_analyses.R
 This file contains code for the regularized regression training and testing for adult SES models covarying for childhood SES within the same level (individual- or neighborhood-). Otherwise identical to predict_fc_full_loop.R.
@@ -68,4 +57,11 @@ This file contains code to calculate the feature importance scores and related v
 * *Inputs*: behavioral dataframe with SES and other sociodemographic data (dataframe); GFC edges per Study member (matrix); framewise displacement values per Study member (dataframe); Glasser parcellation reference file (one column is the Glasser parcel name, one is the cole anticevic, or CAB, parcellation, one is the CAB network name); files from the prediction and performance outputs for each variable.
 
 * *Outputs*: dataframe of feature importance scores (mean Haufe-transformed coefficient across all 100 model iterations) for each variable; figures; statistics.
+
+#### 11. estimate_feature_importance_full_sample.R
+This file estimates the feature importance for each variable by testing the model in the full dataset a single time. This code loops across the six SES/timepoint combinations (childhood and adulthood, individual- and neighborhood-level SES. 
+
+* *Inputs*: GFC edges per Study member (matrix), reliability (ICC) values per edge (vector), framewise displacement values per Study member (dataframe), behavioral dataframe with SES and other sociodemographic data (dataframe).
+
+* *Outputs*: For each variable, outputs are created for a) base models and b) models with covariates added. Outputs are a vector of 8805 Haufe-transformed coefficients per variable. 
 
