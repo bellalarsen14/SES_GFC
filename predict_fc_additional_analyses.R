@@ -20,9 +20,6 @@ behavvar_list <- data.frame(behavvar = c("ADI311","SESchildhd",
                                          "PH45_AreaDeptot","SESall45",
                                          "neighdep2645_factor","ses_composite"))
 
-# load in hyperparameters selected from tuning 
-lambda_selection <- read.csv(paste0(root,'lambda_selection.csv'))
-
 # define the reliability threshold for edges at 0.75
 ICCthr <- 0.75
 
@@ -36,11 +33,11 @@ n_iter <- 100
 # behavvar_idx / covariate_idx index into behavvar_list (1-6)
 # filter_var1 / filter_var2 are the two variables used to restrict to
 # complete cases before splitting (within SES level, consistent from childhood to adulthood)
+
 run_configs <- data.frame(
   name           = c("adult_neigh", "adult_ses"),
   behavvar_idx  = c(5, 6),
   covariate_idx = c(1, 2),
-  lambda_covar_row = c(1,2),
   filter_var1   = c("neighdep2645_factor", "ses_composite"),
   filter_var2   = c("ADI311", "SESchildhd"),
   folder_name    = c("adult_neigh_covar_child", "adult_ses_covar_child"),
@@ -53,7 +50,7 @@ run_configs <- data.frame(
 
 ## load FC edges
 ### loads variable "FC_ALL", columns are "snum" and "edge#"
-load(paste0(root, 'DBIS_GFC_N769_incSubcortex.Rdata'))
+load(paste0(root, 'Larsen/Dunedin/PH45\ Functional\ Connectivity/DBIS_GFC_N769_incSubcortex.Rdata'))
 GFC <- FC_ALL
 GFC$id <- as.numeric(sub("sub-","",GFC$id)); names(GFC)[1] <- "snum"
 
@@ -61,7 +58,7 @@ GFC$id <- as.numeric(sub("sub-","",GFC$id)); names(GFC)[1] <- "snum"
 ROIs_GFC <- names(GFC)[grepl("edge", names(GFC))]
 
 ## load ICC values (1 value per edge, vector of 78210 ICC values)
-ICCs_GFC <- read.csv(paste0(root,'DBIS_GFC_N769_incSubcortex_ICCs.csv'))$ICC
+ICCs_GFC <- read.csv(paste0(root,'Larsen/Dunedin/PH45\ Functional\ Connectivity/DBIS_GFC_N769_incSubcortex_ICCs.csv'))$ICC
 
 ## load behavioral data file, a dataframe with subject number, one row per participant, and SES data
 behavdata <- read.csv(file = paste0(root,"Larsen/Dunedin/Bella_Code/person_level_df_all_ses_comp.csv")) %>%
@@ -71,7 +68,7 @@ behavdata <- read.csv(file = paste0(root,"Larsen/Dunedin/Bella_Code/person_level
 behavdata$sex <- as.factor(behavdata$sex)
 
 ## load in motion (framewise displacement, or FD) covariate, dataframe with subject number, one row per participant, and FD value
-motion <- read.csv(paste0(root,'DBIS_GFC_N769_motion.csv'))
+motion <- read.csv(paste0(root,'Larsen/Dunedin/PH45\ Functional\ Connectivity/DBIS_GFC_N769_motion.csv'))
 motion$snum <- as.numeric(sub("sub-","",motion$id))
 
 ## join behavioral data with imaging data to pare down to subjects with both data
@@ -108,10 +105,11 @@ for (cfg_row in 1:nrow(run_configs)) {
   behavvar <- behavvar_list[cfg$behavvar_idx, ]
   covariate_1 <- behavvar_list[cfg$covariate_idx, ]
 
-  workdir3 <- paste0(root, "Larsen/Dunedin/Bella_Prediction_Outputs/New_Runs_Lambda_Tuned_LOOP_adult_chldhd/", cfg$folder_name, "/perf_covar_child/") # need to create empty storage folders before running
-  workdir4 <- paste0(root, "Larsen/Dunedin/Bella_Prediction_Outputs/New_Runs_Lambda_Tuned_LOOP_adult_chldhd/", cfg$folder_name, "/pred_covar_child/") # need to create empty storage folders before running
+  workdir3 <- paste0(root, "Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_adult_chldhd/", cfg$folder_name, "/perf_covar_child/") # need to create empty storage folders before running
+  workdir4 <- paste0(root, "Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_adult_chldhd/", cfg$folder_name, "/pred_covar_child/") # need to create empty storage folders before running
 
-  lambda_set_covar <- lambda_selection[cfg$lambda_covar_row, 2] # from pre-run tuning
+  # Setup a grid range of lambda values:
+  lambdas <- 10^seq(-2, 2, length = 25)
 
   # pair-specific complete-case filter
   behav_merged <- behav_merged_full %>%
@@ -128,17 +126,14 @@ for (cfg_row in 1:nrow(run_configs)) {
   runname <- 'test'
 
   # -------------------------------------------------------------------------
-  # Load the matching pre-generated splits for this config (produced by the
-  # tuning script, so the same 100 splits are reused here).
+  # Run model
   # -------------------------------------------------------------------------
-  load(paste0(root, "Tuning/generated_splits_loop/adult_covar_chld/splits_", cfg$name, ".Rdata"))  # loads object: splits_<name>
-  splits_cur <- get(paste0("splits_", cfg$name))
 
   for (iter in 1:n_iter){
     perf <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), RMSE=numeric(), Rsquare=numeric(), r=numeric(), MAE=numeric())
 
-    # use pre-generated test/train split for this iteration
-    training.samples <- splits_cur[[iter]]
+    # create 90/10 train/test split
+    training.samples <- data[, paste(behavvar)] %>% createDataPartition(p = 0.9, list = FALSE)
     train.data <- data[training.samples, ]
     test.data  <- data[-training.samples, ]
 
@@ -171,7 +166,7 @@ for (cfg_row in 1:nrow(run_configs)) {
       as.formula(paste("behav_resids", "~ .")), data = train.data.covar, method = "glmnet",
       #trControl = ctrl_frozen,
       trControl = trainControl("cv", number = 10),
-      tuneGrid = expand.grid(alpha = 0, lambda = lambda_set_covar)
+      tuneGrid = expand.grid(alpha = 0, lambda = lambdas)
     )
 
     ## predict in test data
@@ -182,19 +177,9 @@ for (cfg_row in 1:nrow(run_configs)) {
                               MAE = MAE(predictions_ridge_covar, test.data.covar$behav_adj),
                               r = cor(predictions_ridge_covar, test.data.covar$behav_adj ) )
 
-    ## haufe transform for coefficients per Tian and Zalesky NI 2021
-    predictions_ridge_train_covar <- ridge_covar %>% predict(train.data.covar)
-    coefs_haufe_covar <- c()
-    N_covar <- nrow(train.data.covar)
-    for (r in ROIs){ # loop through all edges
-      r_std <- scale(train.data.covar[,paste(r)])
-      coefs_haufe_covar <- c( coefs_haufe_covar, sum(r_std * predictions_ridge_train_covar) / N_covar )
-    }
-
     ## save out everything
     outname <- paste0(gsub(" ", "_", gsub(":","_",date())), "_", round(runif(1,100,999),0))
     df_covar <- data.frame(snum=test_snums, prediction_ridge=predictions_ridge_covar)
-    save(df_covar, coefs_haufe_covar, ROIs_full, file=paste0(workdir4,"/predictions_",outname,".Rdata"))
+    save(df_covar, ROIs_full, file=paste0(workdir4,"/predictions_",outname,".Rdata"))
     save(perf_covar, file=paste0(workdir3,"/performance_",outname,".Rdata"))
   }
-}
