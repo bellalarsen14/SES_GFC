@@ -108,6 +108,9 @@ for (cfg_row in 1:nrow(run_configs)) {
   workdir3 <- paste0(root, "Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_adult_chldhd/", cfg$folder_name, "/perf_covar_child/") # need to create empty storage folders before running
   workdir4 <- paste0(root, "Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_adult_chldhd/", cfg$folder_name, "/pred_covar_child/") # need to create empty storage folders before running
 
+  # create output folders if they do not exist yet
+  for (wd in c(workdir3, workdir4)) dir.create(wd, recursive = TRUE, showWarnings = FALSE)
+  
   # Setup a grid range of lambda values:
   lambdas <- 10^seq(-2, 2, length = 25)
 
@@ -130,6 +133,13 @@ for (cfg_row in 1:nrow(run_configs)) {
   # -------------------------------------------------------------------------
 
   for (iter in 1:n_iter){
+
+    # seed each iteration separately. caret::train() resets the global RNG,
+    # which otherwise chains iterations together and can repeat train/test splits.
+    # The extra 100000 keeps these seeds separate from the main analysis script's.
+    
+    set.seed(54321 + 100000 + cfg_row * 1000 + iter)
+    
     perf <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), RMSE=numeric(), Rsquare=numeric(), r=numeric(), MAE=numeric())
 
     # create 90/10 train/test split
@@ -178,7 +188,7 @@ for (cfg_row in 1:nrow(run_configs)) {
                               r = cor(predictions_ridge_covar, test.data.covar$behav_adj ) )
 
     ## save out everything
-    outname <- paste0(gsub(" ", "_", gsub(":","_",date())), "_", round(runif(1,100,999),0))
+    outname <- paste0(cfg$name, "_iter", sprintf("%03d", iter))
     df_covar <- data.frame(snum=test_snums, prediction_ridge=predictions_ridge_covar)
     save(df_covar, ROIs_full, file=paste0(workdir4,"/predictions_",outname,".Rdata"))
     save(perf_covar, file=paste0(workdir3,"/performance_",outname,".Rdata"))
