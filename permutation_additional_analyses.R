@@ -114,7 +114,6 @@ for (cfg_row in 1:nrow(run_configs)) {
   data_covar <- data_covar[complete.cases(data_covar),]
   
   #Permutation: shuffle neighborhood deprivation scores before testing prediction
-  set.seed(12345) 
   n_perm <- 1000
 
   r_null_covar <- numeric(n_perm)
@@ -122,7 +121,12 @@ for (cfg_row in 1:nrow(run_configs)) {
   # -------------------------------------------------------------------------
 
   for (iter in 1:n_perm){
-  
+
+    # Seed each permutation separately: caret::train() resets the global RNG,
+    # which otherwise makes later permutations repeat earlier ones.
+    
+    set.seed(12345 + 100000 + cfg_row * 10000 + iter)
+    
     print(paste("iteration", iter, "of", n_perm, "-", cfg$name))
     # first, shuffle SES score in the entire dataset. this will be repeated with different shuffling every iteration.
     data_perm <- data
