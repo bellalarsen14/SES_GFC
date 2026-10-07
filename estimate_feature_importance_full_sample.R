@@ -17,7 +17,7 @@ root <- "parentfoldername"
 behavvar_list <- read.csv(paste0(root,'behavvar_list.csv'))
 
 ICCthr <- 0.75
-n_iter <- 1 # just have to run this one once
+n_iter <- 1 # run only once in the full sample
 
 # each brainvarlist is a list of data frame names. They should have corresponding variables for ROIs within the DF, named ROIs_<DF>
 # brainvarlists <- list(list("asegALL", "CT", "SA", "GMV")) 
@@ -107,6 +107,8 @@ for (cfg_row in 1:nrow(run_configs)) {
   
   workdir1 <- paste0(root, "Updated_Runs_CV/", cfg$folder_name, "/haufe_coef_nocovar")
   workdir4 <- paste0(root, "Updated_Runs_CV/", cfg$folder_name, "/haufe_coef_covar")
+  #create working directory
+  for (wd in c(workdir1, workdir4)) dir.create(wd, recursive = TRUE, showWarnings = FALSE)
   
   # pair-specific complete-case filter
   behav_merged <- behav_merged_full %>%
@@ -122,6 +124,10 @@ for (cfg_row in 1:nrow(run_configs)) {
   
   
   for (iter in 1:n_iter){
+
+    # Fix the CV folds used to tune lambda so the Haufe coefficients are reproducible.
+    set.seed(98765 + cfg_row)
+    
     perf <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), RMSE=numeric(), Rsquare=numeric(), r=numeric(), MAE=numeric())
     
     # this time, we are running the model only once, on the full data sample
