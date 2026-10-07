@@ -112,18 +112,20 @@ for (cfg_row in 1:nrow(run_configs)) {
 
   data_covar <- dplyr::left_join(braindat_scaled[,c("snum",ROIs_full)], behav_merged[, c("snum","sex","AverageFD",behavvar,covariate_1)], by="snum")
   data_covar <- data_covar[complete.cases(data_covar),]
-  
+
+  # -------------------------------------------------------------------------
   #Permutation: shuffle neighborhood deprivation scores before testing prediction
-  set.seed(12345) 
   n_perm <- 1000
 
   r_null       <- numeric(n_perm)
   r_null_covar <- numeric(n_perm)
-  
-  # -------------------------------------------------------------------------
 
   for (iter in 1:n_perm){
-  
+
+    # Seed each permutation separately: caret::train() resets the global RNG,
+    # which otherwise makes later permutations repeat earlier ones.
+    set.seed(12345 + cfg_row * 10000 + iter)
+    
     print(paste("iteration", iter, "of", n_perm, "-", cfg$name))
     # first, shuffle SES score in the entire dataset. this will be repeated with different shuffling every iteration.
     data_perm <- data
