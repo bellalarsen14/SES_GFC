@@ -111,6 +111,9 @@ for (cfg_row in 1:nrow(run_configs)) {
   workdir3 <- paste0(root, "Updated_Runs_CV/", cfg$folder_name, "/perf_covar_ses")
   workdir4 <- paste0(root, "Updated_Runs_CV/", cfg$folder_name, "/pred_covar_ses")
 
+   # create output folders if they do not exist yet
+  for (wd in c(workdir1, workdir2, workdir3, workdir4)) dir.create(wd, recursive = TRUE, showWarnings = FALSE)
+
   # pair-specific complete-case filter
   behav_merged <- behav_merged_full %>%
     filter(!is.na(.data[[cfg$filter_var1]]) & !is.na(.data[[cfg$filter_var2]]))
@@ -125,6 +128,12 @@ for (cfg_row in 1:nrow(run_configs)) {
 
 
   for (iter in 1:n_iter){
+
+    # seed each iteration separately. caret::train() resets the global RNG,
+    # which otherwise chains iterations together and can repeat train/test splits.
+    
+    set.seed(54321 + cfg_row * 1000 + iter)
+    
     perf <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), RMSE=numeric(), Rsquare=numeric(), r=numeric(), MAE=numeric())
 
     # create 90/10 train/test split
@@ -168,7 +177,7 @@ for (cfg_row in 1:nrow(run_configs)) {
                         r = cor(predictions_ridge, test.data$behav_adj ) )
 
     ## save out everything
-    outname <- paste0(gsub(" ", "_", gsub(":","_",date())), "_", round(runif(1,100,999),0))
+    outname <- paste0(cfg$name, "_iter", sprintf("%03d", iter))
     df <- data.frame(snum=test_snums, prediction_ridge=predictions_ridge)
     save(df, ROIs_full, file=paste0(workdir1,"/predictions_",outname,".Rdata"))
     save(perf, file=paste0(workdir2,"/performance_",outname,".Rdata"))
@@ -210,7 +219,7 @@ for (cfg_row in 1:nrow(run_configs)) {
                               r = cor(predictions_ridge_covar, test.data.covar$behav_adj ) )
 
     ## save out everything
-    outname <- paste0(gsub(" ", "_", gsub(":","_",date())), "_", round(runif(1,100,999),0))
+    outname <- paste0(cfg$name, "_iter", sprintf("%03d", iter))
     df_covar <- data.frame(snum=test_snums, prediction_ridge=predictions_ridge_covar)
     save(df_covar, ROIs_full, file=paste0(workdir4,"/predictions_",outname,".Rdata"))
     save(perf_covar, file=paste0(workdir3,"/performance_",outname,".Rdata"))
