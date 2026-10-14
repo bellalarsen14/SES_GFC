@@ -16,8 +16,7 @@ library(ggseg)
 library(ggsegGlasser)
 
 ################### OPTIONS #############################
-root <- "/Users/uzg9dz/Library/CloudStorage/Box-Box/"
-setwd("/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Figures_Updated")
+root <- "parentfoldername"
 
 # define the behavioral (SES) variables for analysis
 behavvar_list <- data.frame(behavvar = c("ADI311","SESchildhd",
@@ -26,16 +25,16 @@ behavvar_list <- data.frame(behavvar = c("ADI311","SESchildhd",
 
 # load behavioral dataframe
 
-behavdata <- read.csv(file = "/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Code/person_level_df_all_ses_comp.csv") %>% 
+behavdata <- read.csv(file = "person_level_df_all_ses_comp.csv") %>% 
   select(-X)
 
 # load functional connectivity data
-load(paste0(root, 'Larsen/Dunedin/PH45\ Functional\ Connectivity/DBIS_GFC_N769_incSubcortex.Rdata'))
+load(paste0(root, 'DBIS_GFC_N769_incSubcortex.Rdata'))
 GFC <- FC_ALL
 GFC$id <- as.numeric(sub("sub-","",GFC$id)); names(GFC)[1] <- "snum"
 
 # load in motion - average framewise displacement
-motion <- read.csv("/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/PH45\ Functional\ Connectivity/DBIS_GFC_N769_motion.csv")
+motion <- read.csv("DBIS_GFC_N769_motion.csv")
 motion$snum <- as.numeric(sub("sub-","",motion$id))
 
 behavdata <- join_all(list(
@@ -44,15 +43,15 @@ behavdata <- join_all(list(
 ), by="snum",type="full")
 
 # load Glasser parcellation reference file
-glasser_to_cab <- read.csv("/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Code\ from\ Ethan/reference\ files/Glasser_to_CAB.csv")
+glasser_to_cab <- read.csv("Glasser_to_CAB.csv")
 
 # load intraclass correlation (reliability) files for each edge
-con_icc <- read.csv(paste0(root,'Larsen/Dunedin/PH45\ Functional\ Connectivity/DBIS_GFC_N769_incSubcortex_ICCs.csv'))
+con_icc <- read.csv(paste0(root,'DBIS_GFC_N769_incSubcortex_ICCs.csv'))
 #-------------------------------------------------------------------------------
 # load in feature importance
 #-------------------------------------------------------------------------------
 
-base_path <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded'
+base_path <- 'folderwithpredictionoutputs'
 
 variable_folders <- list.dirs(base_path, full.names = FALSE, recursive = FALSE)
 # variable_folders should now hold the 6 variable-level folder names (e.g. "chldhd_neigh_full", etc.)
@@ -60,7 +59,7 @@ variable_folders <- list.dirs(base_path, full.names = FALSE, recursive = FALSE)
 subfolders <- c("haufe_coef_nocovar", "haufe_coef_covar")
 
 coef_list <- list()
-roi_ref   <- NULL   # edge names from the first file; all others must match
+roi_ref   <- NULL   
 
 for (folder in variable_folders) {
   for (sub in subfolders) {
@@ -105,7 +104,7 @@ for (folder in variable_folders) {
   }
 }
 
-print(sapply(coef_list, length))   # all should equal length(roi_ref), e.g. 8805
+print(sapply(coef_list, length))   # all should equal length(roi_ref), e.g. 8805 (number of reliable edges, ICC > 0.75)
 
 coef_df <- data.frame(coef_list, row.names = roi_ref, check.names = FALSE)
 
@@ -138,9 +137,10 @@ write.csv(fi_df_nocovar_CV_update, file = "feature_importance_seed_update.csv")
 # load in one dataframe per variable, with 100 rows and 10 columns. Each row corresponds to one iteration of the ridge regression.
 # Columns are the variables saved at each iteration: method, brainvar, nROIs, iteration #, N, RMSE, Rsquare, MAE, and r.
 #-------------------------------------------------------------------------------
+# example provided for one variable; all others follow the same format
 # 1: adult neighborhood, no covariates
-file_list_1 <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_neigh_full/perf_nocovar')
-file_dir_1 <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_neigh_full/perf_nocovar/'
+file_list_1 <- list.files('Updated_Runs_CV_seeded/adult_neigh_full/perf_nocovar')
+file_dir_1 <- 'Updated_Runs_CV_seeded/adult_neigh_full/perf_nocovar/'
 pred_alpha_df_1 <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), 
                               RMSE=numeric(), Rsquare=numeric(), MAE=numeric(), r=numeric())
 
@@ -152,10 +152,9 @@ for (f in file_list_1){
   print(x)
 }
 
-
 # 1a: load in all iterations: PREDICTION
-file_list_1a <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_neigh_full/pred_nocovar')
-file_dir_1a <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_neigh_full/pred_nocovar/'
+file_list_1a <- list.files('Updated_Runs_CV_seeded/adult_neigh_full/pred_nocovar')
+file_dir_1a <- 'Updated_Runs_CV_seeded/adult_neigh_full/pred_nocovar/'
 
 predicted_values_neigh_list <- vector("list", 100)
 
@@ -174,187 +173,6 @@ for (f in file_list_1a){
 mean(pred_alpha_df_1$r) 
 
 predicted_values_neigh_df <- do.call(rbind, predicted_values_neigh_list)
-#-------------------------------------------------------------------------------
-# 2: adult ses, no covariates
-file_list_2 <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_ses_full/perf_nocovar')
-file_dir_2 <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_ses_full/perf_nocovar/'
-pred_alpha_df_2 <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), 
-                              RMSE=numeric(), Rsquare=numeric(), MAE=numeric(), r=numeric())
-
-x <- 1
-for (f in file_list_2){
-  load(paste0(file_dir_2, f))
-  pred_alpha_df_2 <- rbind(pred_alpha_df_2, perf)
-  x <- x+1
-  print(x)
-}
-mean(pred_alpha_df_2$r) 
-
-# 2a: load in all iterations: PREDICTIONS
-file_list_2a <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_ses_full/pred_nocovar')
-file_dir_2a <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_ses_full/pred_nocovar/'
-
-predicted_values_ses_list <- vector("list", 100)
-
-variable_order_2 <- pred_alpha_df_2$behavvar
-
-x <- 1
-for (f in file_list_2a){
-  load(paste0(file_dir_2a, f))
-  if (variable_order_2[x] == 'ses_composite'){
-    predicted_values_ses_list[[f]] <- df
-    x <- x+1
-    
-  }
-  print(x)
-}
- 
-predicted_values_ses_df <- do.call(rbind, predicted_values_ses_list)
-#-------------------------------------------------------------------------------
-
-# 3: Childhood ses, no covariates
-file_list_3 <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_ses_full/perf_nocovar')
-file_dir_3 <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_ses_full/perf_nocovar/'
-pred_alpha_df_3 <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), 
-                              RMSE=numeric(), Rsquare=numeric(), MAE=numeric(), r=numeric())
-
-x <- 1
-for (f in file_list_3){
-  load(paste0(file_dir_3, f))
-  pred_alpha_df_3 <- rbind(pred_alpha_df_3, perf)
-  x <- x+1
-  print(x)
-}
-mean(pred_alpha_df_3$r) 
-
-# 3a: load in all iterations: PREDICTIONS
-file_list_3a <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_ses_full/pred_nocovar')
-file_dir_3a <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_ses_full/pred_nocovar/'
-
-predicted_values_chldhdses_list <- vector("list", 100)
-
-variable_order_3 <- pred_alpha_df_3$behavvar
-
-x <- 1
-for (f in file_list_3a){
-  load(paste0(file_dir_3a, f))
-  if (variable_order_3[x] == 'SESchildhd'){
-    predicted_values_chldhdses_list[[f]] <- df
-    x <- x+1
-    
-  }
-  print(x)
-}
-
-predicted_values_chldhdses_df <- do.call(rbind, predicted_values_chldhdses_list)
-#-------------------------------------------------------------------------------
-# 4: Childhood neighborhood, no covariates
-file_list_4 <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_neigh_full/perf_nocovar')
-file_dir_4 <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_neigh_full/perf_nocovar/'
-pred_alpha_df_4 <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), 
-                              RMSE=numeric(), Rsquare=numeric(), MAE=numeric(), r=numeric())
-
-x <- 1
-for (f in file_list_4){
-  load(paste0(file_dir_4, f))
-  pred_alpha_df_4 <- rbind(pred_alpha_df_4, perf)
-  x <- x+1
-  print(x)
-}
-mean(pred_alpha_df_4$r) 
-
-# 4a: load in all iterations: PREDICTIONS
-file_list_4a <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_neigh_full/pred_nocovar')
-file_dir_4a <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_neigh_full/pred_nocovar/'
-
-predicted_values_chldhdneigh_list <- vector("list", 100)
-
-variable_order_4 <- pred_alpha_df_4$behavvar
-
-x <- 1
-for (f in file_list_4a){
-  load(paste0(file_dir_4a, f))
-  if (variable_order_4[x] == 'ADI311'){
-    predicted_values_chldhdneigh_list[[f]] <- df
-    x <- x+1
-    
-  }
-  print(x)
-}
-
-predicted_values_chldhdneigh_df <- do.call(rbind, predicted_values_chldhdneigh_list)
-#-------------------------------------------------------------------------------
-# 5: Age 45 SES, no covariates
-file_list_5 <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_ses_full/perf_nocovar')
-file_dir_5 <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_ses_full/perf_nocovar/'
-pred_alpha_df_5 <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), 
-                              RMSE=numeric(), Rsquare=numeric(), MAE=numeric(), r=numeric())
-
-x <- 1
-for (f in file_list_5){
-  load(paste0(file_dir_5, f))
-  pred_alpha_df_5 <- rbind(pred_alpha_df_5, perf)
-  x <- x+1
-  print(x)
-}
-mean(pred_alpha_df_5$r) 
-
-# 5a: load in all iterations: PREDICTIONS
-file_list_5a <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_ses_full/pred_nocovar')
-file_dir_5a <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_ses_full/pred_nocovar/'
-
-predicted_values_ses_45_list <- vector("list", 100)
-
-variable_order_5 <- pred_alpha_df_5$behavvar
-
-x <- 1
-for (f in file_list_5a){
-  load(paste0(file_dir_5a, f))
-  if (variable_order_5[x] == 'SESall45'){
-    predicted_values_ses_45_list[[f]] <- df
-    x <- x+1
-    
-  }
-  print(x)
-}
-
-predicted_values_ses_45_df <- do.call(rbind, predicted_values_ses_45_list) 
-#-------------------------------------------------------------------------------
-# 6: Age 45 neigh, no covariates
-file_list_6 <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_neigh_full/perf_nocovar')
-file_dir_6 <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_neigh_full/perf_nocovar/'
-pred_alpha_df_6 <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), 
-                              RMSE=numeric(), Rsquare=numeric(), MAE=numeric(), r=numeric())
-
-x <- 1
-for (f in file_list_6){
-  load(paste0(file_dir_6, f))
-  pred_alpha_df_6 <- rbind(pred_alpha_df_6, perf)
-  x <- x+1
-  print(x)
-}
-mean(pred_alpha_df_6$r) 
-
-# 6a: load in all iterations: PREDICTIONS
-file_list_6a <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_neigh_full/pred_nocovar')
-file_dir_6a <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_neigh_full/pred_nocovar/'
-
-predicted_values_neigh_45_list <- vector("list", 100)
-
-variable_order_6 <- pred_alpha_df_6$behavvar
-
-x <- 1
-for (f in file_list_6a){
-  load(paste0(file_dir_6a, f))
-  if (variable_order_6[x] == 'PH45_AreaDeptot'){
-    predicted_values_neigh_45_list[[f]] <- df
-    x <- x+1
-    
-  }
-  print(x)
-}
-
-predicted_values_neigh_45_df <- do.call(rbind, predicted_values_neigh_45_list) 
 
 #-------------------------------------------------------------------------------
 # Create a dataframe of the mean predicted SES value per subject, averaged across model iterations
@@ -385,7 +203,7 @@ wide_final_df_predictions <- final_df_predictions %>%
   )
 
 #-------------------------------------------------------------------------------
-# To visualize scatterplots of observed and predicted SES scores, merge in real values
+# To visualize scatterplots of observed and predicted SES scores, merge in true values
 behavdata_merge <- behavdata %>% 
   select(snum,sex, neighdep2645_factor,ses_composite,SESchildhd,ADI311,SESall45,PH45_AreaDeptot, AverageFD)
 
