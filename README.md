@@ -49,7 +49,7 @@ This file contains code to generate summary statistics and visualizations for th
 
 * *Inputs*: csv file "performance_combined_update" generated from code file, "inspecting_performance.R" containing model performance statistics; behavioral dataframe with SES and other sociodemographic data (dataframe); GFC edges per Study member (matrix); framewise displacement values per Study member (dataframe).
 
-* *Outputs*: tables and figures for manuscript. Note: figures and statistics involving feature importance are in a separate R file.
+* *Outputs*: tables and figures for manuscript. Note: figures and statistics involving feature importance are in a separate R file (see #8 below).
 
 #### 8. visualizing_fi_and_predictions.R
 This file contains code to visualize feature importance heatmaps and prediction accuracy.
@@ -64,6 +64,3 @@ This file estimates the feature importance for each variable by testing the mode
 * *Inputs*: GFC edges per Study member (matrix), reliability (ICC) values per edge (vector), framewise displacement values per Study member (dataframe), behavioral dataframe with SES and other sociodemographic data (dataframe).
 
 * *Outputs*: For each variable, outputs are created for a) base models and b) models with covariates added. Outputs are a vector of 8805 Haufe-transformed coefficients per variable. 
-
-#### 10. inspect_feature_importance.R
-This file loads in the vectors of Haufe coefficients and correlates feature importance scores across variables.
