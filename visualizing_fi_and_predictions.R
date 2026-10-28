@@ -16,7 +16,8 @@ library(ggseg)
 library(ggsegGlasser)
 
 ################### OPTIONS #############################
-root <- "parentfoldername"
+root <- "/Users/uzg9dz/Library/CloudStorage/Box-Box/"
+setwd("/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Figures_Updated")
 
 # define the behavioral (SES) variables for analysis
 behavvar_list <- data.frame(behavvar = c("ADI311","SESchildhd",
@@ -25,16 +26,16 @@ behavvar_list <- data.frame(behavvar = c("ADI311","SESchildhd",
 
 # load behavioral dataframe
 
-behavdata <- read.csv(file = "person_level_df_all_ses_comp.csv") %>% 
+behavdata <- read.csv(file = "/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Code/person_level_df_all_ses_comp.csv") %>% 
   select(-X)
 
 # load functional connectivity data
-load(paste0(root, 'DBIS_GFC_N769_incSubcortex.Rdata'))
+load(paste0(root, 'Larsen/Dunedin/PH45\ Functional\ Connectivity/DBIS_GFC_N769_incSubcortex.Rdata'))
 GFC <- FC_ALL
 GFC$id <- as.numeric(sub("sub-","",GFC$id)); names(GFC)[1] <- "snum"
 
 # load in motion - average framewise displacement
-motion <- read.csv("DBIS_GFC_N769_motion.csv")
+motion <- read.csv("/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/PH45\ Functional\ Connectivity/DBIS_GFC_N769_motion.csv")
 motion$snum <- as.numeric(sub("sub-","",motion$id))
 
 behavdata <- join_all(list(
@@ -43,15 +44,15 @@ behavdata <- join_all(list(
 ), by="snum",type="full")
 
 # load Glasser parcellation reference file
-glasser_to_cab <- read.csv("Glasser_to_CAB.csv")
+glasser_to_cab <- read.csv("/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Code\ from\ Ethan/reference\ files/Glasser_to_CAB.csv")
 
 # load intraclass correlation (reliability) files for each edge
-con_icc <- read.csv(paste0(root,'DBIS_GFC_N769_incSubcortex_ICCs.csv'))
+con_icc <- read.csv(paste0(root,'Larsen/Dunedin/PH45\ Functional\ Connectivity/DBIS_GFC_N769_incSubcortex_ICCs.csv'))
 #-------------------------------------------------------------------------------
 # load in feature importance
 #-------------------------------------------------------------------------------
 
-base_path <- 'folderwithpredictionoutputs'
+base_path <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded'
 
 variable_folders <- list.dirs(base_path, full.names = FALSE, recursive = FALSE)
 # variable_folders should now hold the 6 variable-level folder names (e.g. "chldhd_neigh_full", etc.)
@@ -59,7 +60,7 @@ variable_folders <- list.dirs(base_path, full.names = FALSE, recursive = FALSE)
 subfolders <- c("haufe_coef_nocovar", "haufe_coef_covar")
 
 coef_list <- list()
-roi_ref   <- NULL   
+roi_ref   <- NULL   # edge names from the first file; all others must match
 
 for (folder in variable_folders) {
   for (sub in subfolders) {
@@ -104,7 +105,7 @@ for (folder in variable_folders) {
   }
 }
 
-print(sapply(coef_list, length))   # all should equal length(roi_ref), e.g. 8805 (number of reliable edges, ICC > 0.75)
+print(sapply(coef_list, length))   # all should equal length(roi_ref), e.g. 8805
 
 coef_df <- data.frame(coef_list, row.names = roi_ref, check.names = FALSE)
 
@@ -137,10 +138,9 @@ write.csv(fi_df_nocovar_CV_update, file = "feature_importance_seed_update.csv")
 # load in one dataframe per variable, with 100 rows and 10 columns. Each row corresponds to one iteration of the ridge regression.
 # Columns are the variables saved at each iteration: method, brainvar, nROIs, iteration #, N, RMSE, Rsquare, MAE, and r.
 #-------------------------------------------------------------------------------
-# example provided for one variable; all others follow the same format
 # 1: adult neighborhood, no covariates
-file_list_1 <- list.files('Updated_Runs_CV_seeded/adult_neigh_full/perf_nocovar')
-file_dir_1 <- 'Updated_Runs_CV_seeded/adult_neigh_full/perf_nocovar/'
+file_list_1 <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_neigh_full/perf_nocovar')
+file_dir_1 <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_neigh_full/perf_nocovar/'
 pred_alpha_df_1 <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), 
                               RMSE=numeric(), Rsquare=numeric(), MAE=numeric(), r=numeric())
 
@@ -152,9 +152,10 @@ for (f in file_list_1){
   print(x)
 }
 
+
 # 1a: load in all iterations: PREDICTION
-file_list_1a <- list.files('Updated_Runs_CV_seeded/adult_neigh_full/pred_nocovar')
-file_dir_1a <- 'Updated_Runs_CV_seeded/adult_neigh_full/pred_nocovar/'
+file_list_1a <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_neigh_full/pred_nocovar')
+file_dir_1a <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_neigh_full/pred_nocovar/'
 
 predicted_values_neigh_list <- vector("list", 100)
 
@@ -173,6 +174,187 @@ for (f in file_list_1a){
 mean(pred_alpha_df_1$r) 
 
 predicted_values_neigh_df <- do.call(rbind, predicted_values_neigh_list)
+#-------------------------------------------------------------------------------
+# 2: adult ses, no covariates
+file_list_2 <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_ses_full/perf_nocovar')
+file_dir_2 <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_ses_full/perf_nocovar/'
+pred_alpha_df_2 <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), 
+                              RMSE=numeric(), Rsquare=numeric(), MAE=numeric(), r=numeric())
+
+x <- 1
+for (f in file_list_2){
+  load(paste0(file_dir_2, f))
+  pred_alpha_df_2 <- rbind(pred_alpha_df_2, perf)
+  x <- x+1
+  print(x)
+}
+mean(pred_alpha_df_2$r) 
+
+# 2a: load in all iterations: PREDICTIONS
+file_list_2a <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_ses_full/pred_nocovar')
+file_dir_2a <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/adult_ses_full/pred_nocovar/'
+
+predicted_values_ses_list <- vector("list", 100)
+
+variable_order_2 <- pred_alpha_df_2$behavvar
+
+x <- 1
+for (f in file_list_2a){
+  load(paste0(file_dir_2a, f))
+  if (variable_order_2[x] == 'ses_composite'){
+    predicted_values_ses_list[[f]] <- df
+    x <- x+1
+    
+  }
+  print(x)
+}
+ 
+predicted_values_ses_df <- do.call(rbind, predicted_values_ses_list)
+#-------------------------------------------------------------------------------
+
+# 3: Childhood ses, no covariates
+file_list_3 <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_ses_full/perf_nocovar')
+file_dir_3 <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_ses_full/perf_nocovar/'
+pred_alpha_df_3 <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), 
+                              RMSE=numeric(), Rsquare=numeric(), MAE=numeric(), r=numeric())
+
+x <- 1
+for (f in file_list_3){
+  load(paste0(file_dir_3, f))
+  pred_alpha_df_3 <- rbind(pred_alpha_df_3, perf)
+  x <- x+1
+  print(x)
+}
+mean(pred_alpha_df_3$r) 
+
+# 3a: load in all iterations: PREDICTIONS
+file_list_3a <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_ses_full/pred_nocovar')
+file_dir_3a <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_ses_full/pred_nocovar/'
+
+predicted_values_chldhdses_list <- vector("list", 100)
+
+variable_order_3 <- pred_alpha_df_3$behavvar
+
+x <- 1
+for (f in file_list_3a){
+  load(paste0(file_dir_3a, f))
+  if (variable_order_3[x] == 'SESchildhd'){
+    predicted_values_chldhdses_list[[f]] <- df
+    x <- x+1
+    
+  }
+  print(x)
+}
+
+predicted_values_chldhdses_df <- do.call(rbind, predicted_values_chldhdses_list)
+#-------------------------------------------------------------------------------
+# 4: Childhood neighborhood, no covariates
+file_list_4 <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_neigh_full/perf_nocovar')
+file_dir_4 <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_neigh_full/perf_nocovar/'
+pred_alpha_df_4 <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), 
+                              RMSE=numeric(), Rsquare=numeric(), MAE=numeric(), r=numeric())
+
+x <- 1
+for (f in file_list_4){
+  load(paste0(file_dir_4, f))
+  pred_alpha_df_4 <- rbind(pred_alpha_df_4, perf)
+  x <- x+1
+  print(x)
+}
+mean(pred_alpha_df_4$r) 
+
+# 4a: load in all iterations: PREDICTIONS
+file_list_4a <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_neigh_full/pred_nocovar')
+file_dir_4a <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/chldhd_neigh_full/pred_nocovar/'
+
+predicted_values_chldhdneigh_list <- vector("list", 100)
+
+variable_order_4 <- pred_alpha_df_4$behavvar
+
+x <- 1
+for (f in file_list_4a){
+  load(paste0(file_dir_4a, f))
+  if (variable_order_4[x] == 'ADI311'){
+    predicted_values_chldhdneigh_list[[f]] <- df
+    x <- x+1
+    
+  }
+  print(x)
+}
+
+predicted_values_chldhdneigh_df <- do.call(rbind, predicted_values_chldhdneigh_list)
+#-------------------------------------------------------------------------------
+# 5: Age 45 SES, no covariates
+file_list_5 <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_ses_full/perf_nocovar')
+file_dir_5 <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_ses_full/perf_nocovar/'
+pred_alpha_df_5 <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), 
+                              RMSE=numeric(), Rsquare=numeric(), MAE=numeric(), r=numeric())
+
+x <- 1
+for (f in file_list_5){
+  load(paste0(file_dir_5, f))
+  pred_alpha_df_5 <- rbind(pred_alpha_df_5, perf)
+  x <- x+1
+  print(x)
+}
+mean(pred_alpha_df_5$r) 
+
+# 5a: load in all iterations: PREDICTIONS
+file_list_5a <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_ses_full/pred_nocovar')
+file_dir_5a <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_ses_full/pred_nocovar/'
+
+predicted_values_ses_45_list <- vector("list", 100)
+
+variable_order_5 <- pred_alpha_df_5$behavvar
+
+x <- 1
+for (f in file_list_5a){
+  load(paste0(file_dir_5a, f))
+  if (variable_order_5[x] == 'SESall45'){
+    predicted_values_ses_45_list[[f]] <- df
+    x <- x+1
+    
+  }
+  print(x)
+}
+
+predicted_values_ses_45_df <- do.call(rbind, predicted_values_ses_45_list) 
+#-------------------------------------------------------------------------------
+# 6: Age 45 neigh, no covariates
+file_list_6 <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_neigh_full/perf_nocovar')
+file_dir_6 <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_neigh_full/perf_nocovar/'
+pred_alpha_df_6 <- data.frame(method=character(), brainvar=character(), behavvar=character(), nROIs=numeric(), iteration=numeric(), N=numeric(), 
+                              RMSE=numeric(), Rsquare=numeric(), MAE=numeric(), r=numeric())
+
+x <- 1
+for (f in file_list_6){
+  load(paste0(file_dir_6, f))
+  pred_alpha_df_6 <- rbind(pred_alpha_df_6, perf)
+  x <- x+1
+  print(x)
+}
+mean(pred_alpha_df_6$r) 
+
+# 6a: load in all iterations: PREDICTIONS
+file_list_6a <- list.files('/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_neigh_full/pred_nocovar')
+file_dir_6a <- '/Users/uzg9dz/Library/CloudStorage/Box-Box/Larsen/Dunedin/Bella_Prediction_Outputs/Updated_Runs_CV_seeded/age45_neigh_full/pred_nocovar/'
+
+predicted_values_neigh_45_list <- vector("list", 100)
+
+variable_order_6 <- pred_alpha_df_6$behavvar
+
+x <- 1
+for (f in file_list_6a){
+  load(paste0(file_dir_6a, f))
+  if (variable_order_6[x] == 'PH45_AreaDeptot'){
+    predicted_values_neigh_45_list[[f]] <- df
+    x <- x+1
+    
+  }
+  print(x)
+}
+
+predicted_values_neigh_45_df <- do.call(rbind, predicted_values_neigh_45_list) 
 
 #-------------------------------------------------------------------------------
 # Create a dataframe of the mean predicted SES value per subject, averaged across model iterations
@@ -203,7 +385,7 @@ wide_final_df_predictions <- final_df_predictions %>%
   )
 
 #-------------------------------------------------------------------------------
-# To visualize scatterplots of observed and predicted SES scores, merge in true values
+# To visualize scatterplots of observed and predicted SES scores, merge in real values
 behavdata_merge <- behavdata %>% 
   select(snum,sex, neighdep2645_factor,ses_composite,SESchildhd,ADI311,SESall45,PH45_AreaDeptot, AverageFD)
 
@@ -285,6 +467,7 @@ ggsave("figure_S3.pdf", plot = figure_S3, dpi = 300, width = 23, height = 13, un
 # Table S7: correlations of feature importance across levels of analysis
 cor_mat <- cor(fi_df, use = "pairwise.complete.obs")
 
+
 # multiply neighborhood feature importance by -1 for consistent directionality with individual SES
 fi_df <- fi_df |> 
   mutate(chldhd_neigh_fi_flip = -1*chldhd_neigh_fi,
@@ -294,6 +477,9 @@ selected_fi <- fi_df %>%
   select(chldhd_SES_fi,chldhd_neigh_fi_flip,adulthd_ses_fi,adulthd_neigh_fi_flip)
 
 apa.cor.table(selected_fi, filename = "Table1_APA.doc", table.number = 1)
+
+cor_mat_spearman <- cor(selected_fi, method = "spearman", use = "pairwise.complete.obs")
+round(cor_mat, 2)
 
 #-------------------------------------------------------------------------------
 
@@ -361,7 +547,7 @@ ggplot(df_colors, aes(x = x, y = y, fill = network)) +
   geom_tile() +
   scale_fill_manual(values = network_colors_named) +
   theme_void() +
-  theme(legend.position = "bottom")
+  theme(legend.position = "top")
 #-------------------------------------------------------------------------------
 # percentage of positive feature importance scores
 fi_df_long <- fi_df |>
@@ -390,6 +576,9 @@ fi_df_long |>
 #-------------------------------------------------------------------------------
 # Create feature importance heatmaps for each variable (Figure S6)
 #-------------------------------------------------------------------------------
+# set arguments for the heat pallate
+pal  <- c("blue", "#9999FF", "grey96", "#FF9999", "red")
+vals <- c(0, 0.35, 0.5, 0.65, 1)
 
 # 1: childhood individual-level SES
 
@@ -447,7 +636,7 @@ superheat(sd_adj_empty_chldhd_ses,
           legend.text.size = 10)
 
 # save a version without labels
-tiff("child_ses_heat.tiff", width = 7, height = 7, units = "in", res = 600, compression = "lzw")
+tiff("child_ses_heat_sd.tiff", width = 7, height = 7, units = "in", res = 600, compression = "lzw")
 
 superheat(sd_adj_empty_chldhd_ses,
           membership.rows = network_labels,
@@ -456,10 +645,10 @@ superheat(sd_adj_empty_chldhd_ses,
           grid.vline.col = 'white',
           grid.hline.size = 1.5,
           grid.vline.size = 1.5,
-          heat.pal = c("blue", "#9999FF", "grey96", "#FF9999", "red"),
+          heat.pal = pal,
           heat.na.col= 'grey97',
-          heat.pal.values = c(0, 0.35, 0.5, 0.65, 1),
-          heat.lim = c(-5,5),
+          heat.pal.values = vals,
+          heat.lim = c(-4,4),
           title = 'Childhood cumulative SES (birth - 15)',
           bottom.label.text.size = 0,
           bottom.label.col = network_colors_12,
@@ -467,10 +656,24 @@ superheat(sd_adj_empty_chldhd_ses,
           left.label.text.size = 0,
           left.label.col = network_colors_12,
           legend.height = 0,
-          legend.text.size = 10,
+          legend.text.size = 0,
           bottom.label.size = 0.04,
           left.label.size   = 0.04)
 dev.off()
+
+# legend 815, 130
+cb <- data.frame(x = seq(-4, 4, length.out = 300), y = 1)
+
+bar <- ggplot(cb, aes(x, y, fill = x)) +
+  geom_raster() +
+  scale_fill_gradientn(colours = pal, values = vals, limits = c(-4,4), guide = "none") +
+  scale_x_continuous(breaks = c(-4, -2, 0, 2, 4),
+                     labels = c("-4", "-2", "0", "2", "4"),
+                     expand = c(0, 0)) +
+  labs(x = "SD-scaled Feature importance", y = NULL) +
+  theme_minimal(base_size = 20) +
+  theme(axis.text.y = element_blank(), panel.grid = element_blank(),
+        plot.margin = margin(5, 80, 5, 80))   # narrows the bar
 
 #-------------------------------------------------------------------------------
 # 2: childhood neighborhood-level SES
@@ -530,7 +733,7 @@ superheat(sd_adj_neg_chldhd_neigh,
           legend.text.size = 10)
 
 # save a version without labels
-tiff("child_neigh_heat.tiff", width = 7, height = 7, units = "in", res = 600, compression = "lzw")
+tiff("child_neigh_heat_sd.tiff", width = 7, height = 7, units = "in", res = 600, compression = "lzw")
 superheat(sd_adj_neg_chldhd_neigh,
           scale = F,
           membership.rows = network_labels,
@@ -539,10 +742,10 @@ superheat(sd_adj_neg_chldhd_neigh,
           grid.vline.col = 'white',
           grid.hline.size = 1.5,
           grid.vline.size = 1.5,
-          heat.pal = c("blue", "#9999FF", "grey96", "#FF9999", "red"),
+          heat.pal = pal,
           heat.na.col= 'grey97',
-          heat.pal.values = c(0, 0.35, 0.5, 0.65, 1),
-          heat.lim = c(-5,5),
+          heat.pal.values = vals,
+          heat.lim = c(-4.47,4.47),
           title = 'Childhood cumulative neighborhood SES (3 - 11)',
           bottom.label.text.size = 0,
           bottom.label.col = network_colors_12,
@@ -550,10 +753,25 @@ superheat(sd_adj_neg_chldhd_neigh,
           left.label.text.size = 0,
           left.label.col = network_colors_12,
           legend.height = 0,
-          legend.text.size = 10,
+          legend.text.size = 0,
           bottom.label.size = 0.04,
           left.label.size   = 0.04)
-dev.off()
+  dev.off()
+  
+  # legend 815, 130
+  cb <- data.frame(x = seq(-4.47, 4.47, length.out = 300), y = 1)
+  
+  bar <- ggplot(cb, aes(x, y, fill = x)) +
+    geom_raster() +
+    scale_fill_gradientn(colours = pal, values = vals, limits = c(-4.47,4.47), guide = "none") +
+    scale_x_continuous(breaks = c(-4.47, -2.24, 0, 2.24, 4.47),
+                       labels = c("-4.47", "-2.24", "0", "2.24", "4.47"),
+                       expand = c(0, 0)) +
+    labs(x = "SD-scaled Feature importance", y = NULL) +
+    theme_minimal(base_size = 20) +
+    theme(axis.text.y = element_blank(), panel.grid = element_blank(),
+          plot.margin = margin(5, 80, 5, 80))   # narrows the bar
+  
 
 #-------------------------------------------------------------------------------
 # 3: adulthood neighborhood-level SES
@@ -612,7 +830,7 @@ superheat(sd_adj_neg_adlthd_neigh,
           legend.text.size = 10)
 
 # save a version without labels
-tiff("adult_neigh_heat.tiff", width = 7, height = 7, units = "in", res = 600, compression = "lzw")
+tiff("adult_neigh_heat_sd.tiff", width = 7, height = 7, units = "in", res = 600, compression = "lzw")
 superheat(sd_adj_neg_adlthd_neigh,
           membership.rows = network_labels,
           membership.cols = network_labels,
@@ -620,10 +838,10 @@ superheat(sd_adj_neg_adlthd_neigh,
           grid.vline.col = 'white',
           grid.hline.size = 1.5,
           grid.vline.size = 1.5,
-          heat.pal = c("blue", "#9999FF", "grey96", "#FF9999", "red"),
+          heat.pal = pal,
           heat.na.col= 'grey97',
-          heat.pal.values = c(0, 0.35, 0.5, 0.65, 1),
-          heat.lim = c(-5,5),
+          heat.pal.values = vals,
+          heat.lim = c(-3.47,3.47),
           title = 'Adulthood cumulative neighborhood SES (26 - 46)',
           bottom.label.text.size = 0,
           bottom.label.col = network_colors_12,
@@ -631,10 +849,24 @@ superheat(sd_adj_neg_adlthd_neigh,
           left.label.text.size = 0,
           left.label.col = network_colors_12,
           legend.height = 0,
-          legend.text.size = 10,
+          legend.text.size = 0,
           bottom.label.size = 0.04,
           left.label.size   = 0.04)
 dev.off()
+
+# legend 815, 130
+cb <- data.frame(x = seq(-3.47, 3.47, length.out = 300), y = 1)
+
+bar <- ggplot(cb, aes(x, y, fill = x)) +
+  geom_raster() +
+  scale_fill_gradientn(colours = pal, values = vals, limits = c(-3.47, 3.47), guide = "none") +
+  scale_x_continuous(breaks = c(-3.47, -1.74, 0, 1.74, 3.47),
+                     labels = c("-3.47", "-1.74", "0", "1.74", "3.47"),
+                     expand = c(0, 0)) +
+  labs(x = "SD-scaled Feature importance", y = NULL) +
+  theme_minimal(base_size = 20) +
+  theme(axis.text.y = element_blank(), panel.grid = element_blank(),
+        plot.margin = margin(5, 80, 5, 80))   # narrows the bar
 
 #-------------------------------------------------------------------------------
 # 4: adulthood individual-level ses
@@ -692,7 +924,7 @@ superheat(sd_adj_empty_adlthd_ses,
           bottom.label.col = network_colors_12)
 
 # save a version without labels
-tiff("adult_ses_heat.tiff", width = 7, height = 7, units = "in", res = 600, compression = "lzw")
+tiff("adult_ses_heat_sd.tiff", width = 7, height = 7, units = "in", res = 600, compression = "lzw")
 superheat(sd_adj_empty_adlthd_ses,
           membership.rows = network_labels,
           membership.cols = network_labels,
@@ -700,18 +932,101 @@ superheat(sd_adj_empty_adlthd_ses,
           grid.vline.col = 'white',
           grid.hline.size = 1.5,
           grid.vline.size = 1.5,
-          heat.pal = c("blue", "#9999FF", "grey96", "#FF9999", "red"),
+          heat.pal = pal,
           heat.na.col= 'grey97',
-          heat.pal.values = c(0, 0.35, 0.5, 0.65, 1),
-          heat.lim = c(-5,5),
+          heat.pal.values = vals,
+          heat.lim = c(-4.9,4.9),
           title = 'Adulthood cumulative SES (26 - 46)',
           bottom.label.text.size = 0,
           bottom.label.text.angle = 90,
           left.label.text.size = 0,
           legend.height = 0,
-          legend.text.size = 10,
+          legend.text.size = 0,
           left.label.col = network_colors_12,
           bottom.label.col = network_colors_12,
           bottom.label.size = 0.04,
           left.label.size   = 0.04)
 dev.off()
+
+# legend 815, 130
+cb <- data.frame(x = seq(-4.9,4.9, length.out = 300), y = 1)
+
+bar <- ggplot(cb, aes(x, y, fill = x)) +
+  geom_raster() +
+  scale_fill_gradientn(colours = pal, values = vals, limits = c(-4.9,4.9), guide = "none") +
+  scale_x_continuous(breaks = c(-4.9, -2.45, 0, 2.45, 4.9),
+                     labels = c("-4.9", "-2.45", "0", "2.45", "4.9"),
+                     expand = c(0, 0)) +
+  labs(x = "SD-scaled Feature importance", y = NULL) +
+  theme_minimal(base_size = 20) +
+  theme(axis.text.y = element_blank(), panel.grid = element_blank(),
+        plot.margin = margin(5, 80, 5, 80))   # narrows the bar
+#-------------------------------------------------------------------------------
+# legend, for all
+cb <- data.frame(x = seq(lim[1], lim[2], length.out = 300), y = 1)
+bar <- ggplot(cb, aes(x, y, fill = x)) +
+  geom_raster() +
+  scale_fill_gradientn(colours = pal, values = vals, limits = lim, guide = "none") +
+  scale_x_continuous(breaks = c(-0.14, -0.07, 0, 0.07, 0.14),
+                     labels = c("-0.14", "-0.07", "0", "0.07", "0.14"),
+                     expand = c(0, 0)) +
+  labs(x = "SD-scaled Feature importance", y = NULL) +
+  theme_minimal(base_size = 20) +
+  theme(axis.text.y = element_blank(), panel.grid = element_blank(),
+        plot.margin = margin(5, 80, 5, 80))   # narrows the bar
+
+#-------------------------------------------------------------------------------
+# nodal level
+#-------------------------------------------------------------------------------
+# childhood ses
+
+# make parcel level matrix
+sd_adj_glasser_chldhd_ses <- glasser_empty_chldhd_ses / sd(glasser_empty_chldhd_ses, na.rm = TRUE)
+
+sd_adj_glasser_chldhd_ses[is.na(sd_adj_glasser_chldhd_ses)] <- 0  # make NA's 0
+
+sd_nodal_fi_chldhd_ses <-  data.frame(Glasser_Parcel = colnames(sd_adj_glasser_chldhd_ses),
+                                      chldhd_ses_fi = colMeans(sd_adj_glasser_chldhd_ses, na.rm=T))
+
+sd_nodal_fi_chldhd_ses <- full_join(sd_nodal_fi_chldhd_ses,glasser_to_cab, by = "Glasser_Parcel")
+
+#-------------------------------------------------------------------------------
+# childhood neighborhood
+
+# make parcel level matrix
+sd_adj_glasser_chldhd_neigh <- glasser_empty_chldhd_neigh / sd(glasser_empty_chldhd_neigh, na.rm = TRUE)
+
+sd_adj_glasser_chldhd_neigh[is.na(sd_adj_glasser_chldhd_neigh)] <- 0  # make NA's 0
+
+sd_nodal_fi_chldhd_neigh <-  data.frame(Glasser_Parcel = colnames(sd_adj_glasser_chldhd_neigh),
+                                      chldhd_neigh_fi = colMeans(sd_adj_glasser_chldhd_neigh, na.rm=T))
+
+sd_nodal_fi_chldhd_neigh <- full_join(sd_nodal_fi_chldhd_neigh,glasser_to_cab, by = "Glasser_Parcel")
+
+#-------------------------------------------------------------------------------
+# adult ses
+
+# make parcel level matrix
+sd_adj_glasser_adult_ses <- glasser_adlthd_ses / sd(glasser_adlthd_ses, na.rm = TRUE)
+
+sd_adj_glasser_adult_ses[is.na(sd_adj_glasser_adult_ses)] <- 0  # make NA's 0
+
+sd_nodal_fi_adult_ses <-  data.frame(Glasser_Parcel = colnames(sd_adj_glasser_adult_ses),
+                                        adult_ses_fi = colMeans(sd_adj_glasser_adult_ses, na.rm=T))
+
+sd_nodal_fi_adult_ses <- full_join(sd_nodal_fi_adult_ses,glasser_to_cab, by = "Glasser_Parcel")
+
+#-------------------------------------------------------------------------------
+# adult neighborhood
+
+# make parcel level matrix
+sd_adj_glasser_adult_neigh <- glasser_empty_adlthd_neigh / sd(glasser_empty_adlthd_neigh, na.rm = TRUE)
+
+sd_adj_glasser_adult_neigh[is.na(sd_adj_glasser_adult_neigh)] <- 0  # make NA's 0
+
+sd_nodal_fi_adult_neigh <-  data.frame(Glasser_Parcel = colnames(sd_adj_glasser_adult_neigh),
+                                     adult_neigh_fi = colMeans(sd_adj_glasser_adult_neigh, na.rm=T))
+
+sd_nodal_fi_adult_neigh <- full_join(sd_nodal_fi_adult_neigh,glasser_to_cab, by = "Glasser_Parcel")
+
+
