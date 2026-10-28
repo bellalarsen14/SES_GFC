@@ -56,7 +56,7 @@ This file contains code to visualize feature importance heatmaps and prediction 
 
 * *Inputs*: behavioral dataframe with SES and other sociodemographic data (dataframe); GFC edges per Study member (matrix); framewise displacement values per Study member (dataframe); Glasser parcellation reference file (one column is the Glasser parcel name, one is the cole anticevic, or CAB, parcellation, one is the CAB network name); files from the prediction and performance outputs for each variable.
 
-* *Outputs*: dataframe of feature importance scores (mean Haufe-transformed coefficient across all 100 model iterations) for each variable; figures; statistics.
+* *Outputs*: dataframe of feature importance scores (mean Haufe-transformed coefficients for each reliable edge) for each variable; figures; statistics.
 
 #### 9. estimate_feature_importance_full_sample.R
 This file estimates the feature importance for each variable by testing the model in the full dataset a single time. This code loops across the six SES/timepoint combinations (childhood and adulthood, individual- and neighborhood-level SES. 
